@@ -47,3 +47,5 @@ class Command:
 
   def likelyhood(self, extractedFeatures):
     return self.classificator.likelyhood(extractedFeatures)
+
+# EOF
