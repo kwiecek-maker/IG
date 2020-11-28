@@ -1,0 +1,1 @@
+# Speech recognition program made by students from AGH. 
