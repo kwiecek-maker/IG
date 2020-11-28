@@ -1,8 +1,5 @@
 import main.recorder as recorder
 import main.preprocessUnit as preprocess
-import main.featureExtractor as extractor
-import main.command as command
-import gui.gui as gui
 
 
 #  manages all object used in this program  
@@ -10,7 +7,7 @@ class Manager:
   def __init__(self, FeatureExtractor, CommandManager, GUISmartHome):
     self.recorder = recorder.Recorder()
     self.preprocessUnit = preprocess.PreprocessUnit()
-    self.featureExtractor = extractor.FeatureExtractor
+    self.featureExtractor = FeatureExtractor
     self.commandManager = CommandManager
     self.GUI = GUISmartHome
   
