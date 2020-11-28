@@ -1,12 +1,13 @@
 import main.recorder as recorder
 import main.preprocessUnit as preprocess
 
+import logging
 
 #  manages all object used in this program  
 class Manager:
   def __init__(self, FeatureExtractor, CommandManager, GUISmartHome):
-    self.recorder = recorder.Recorder()
-    self.preprocessUnit = preprocess.PreprocessUnit()
+    self.recorder = recorder.Recorder(thresholdLevel = 0.5)
+    self.preprocessUnit = preprocess.PreprocessUnit(desiredLoudnessLevel=1.0, downsamplingFrequency=8e3)
     self.featureExtractor = FeatureExtractor
     self.commandManager = CommandManager
     self.GUI = GUISmartHome
@@ -35,6 +36,7 @@ class Manager:
         self.GUI.putIntoQueue(command)
 
   def trainThread(self):
-    pass
+    for _ in range(10):
+      logging.info("training...")
     # Discuss with the Team how should we train data
         

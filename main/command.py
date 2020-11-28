@@ -1,4 +1,8 @@
 from copy import copy
+import logging
+
+# Creates commands from the recording files. Associate command type 
+# by name of the recording files 
 class CommandFactory:
   def __init__(self, classificator):
     self.commandMap = {} # map structure:
@@ -15,6 +19,21 @@ class CommandFactory:
    # creates List of used commands in program
   def makeCommandList(self):
     pass
+
+# Manages all commands created by Command factory 
+class CommandManager:
+  def __init__(self):
+    self.commands = []
+  
+  # acquires commands from Comands factory by passing command
+  # list from command factory 
+  def acquireCommands(self, commandList):
+    self.commands = commandList
+
+  # iterates over all self.commands, invoking likelyhood.
+  # finds command with the biggest likelyhood and returns it
+  def recognize(self, extractedData):
+    logging.warning("no implemented yet!")
 
 # Mediator of the classificator
 class Command:

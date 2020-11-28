@@ -1,18 +1,21 @@
 import main.featureExtractor as extractor
 import main.command as command
 import main.manager as manager
-import gui.gui as GUI
+import GUI.gui as GUI
 
 import threading 
 import logging
 
-FeatureExtractor = extractor.MFCC
-CommandManager = command.CommandManager
-Gui = GUI.GUISmartHome
+# Clearing the logs
+open('logging.log', 'w').close()
+
+FeatureExtractor = extractor.MFCC()
+CommandManager = command.CommandManager()
+Gui = GUI.GUISmartHome()
 
 Manager = manager.Manager(FeatureExtractor, CommandManager, Gui) 
   
-logging.basicConfig(filename = 'logging.txt', encoding = 'utf-8', level = logging.DEBUG)
+logging.basicConfig(filename = 'logging.log', encoding = 'utf-8', level = logging.DEBUG)
 logging.info("Starting program")
 
 def trainThread():
