@@ -5,6 +5,8 @@ import GUI.gui as GUI
 
 import threading 
 import logging
+import time
+import keyboard
 
 # Clearing the logs
 open('logging.log', 'w').close()
@@ -20,27 +22,36 @@ logging.info("Starting program")
 
 def trainThread():
   t = threading.current_thread()
-  logging.info("Training Thread - number %s started", t.getName())
-  manager.trainThread()
-  logging.info("Training Thread: %s finished", t.getName())
+  logging.info("Training %s started", t.getName())
+  Manager.trainThread()
+  logging.info("Training %s finished", t.getName())
 
 def guiThread():
   t = threading.current_thread()
-  logging.info("Gui Thread - number %s started", t.getName())
-  Manager.guiThread()
-  logging.info("Gui Thread: %s finished", t.getName())
+  logging.info("Gui %s started", t.getName())
+  while True:
+    Manager.guiLoop()
+    if (keyboard.is_pressed('q')):
+      break
+  logging.info("Gui %s finished", t.getName())
 
 def dataCalculationThread():
   t = threading.current_thread()
-  logging.info("Data Calculation Thread - number %s started", t.getName())
-  manager.dataCalculationThread()
-  logging.info("Gui Thread: %s finished", t.getName())
+  logging.info("Data Calculation %s started", t.getName())
+  while True:
+    Manager.dataCalculationLoop()
+    if (keyboard.is_pressed('q')):
+      break
+  logging.info("Gui %s finished", t.getName())
 
 def recordingThread():
   t = threading.current_thread()
-  logging.info("Recording Thread - number %s started", t.getName())
-  manager.recordingThread()
-  logging.info("Recording Thread: %s finished", t.getName())
+  logging.info("Recording %s started", t.getName())
+  while True:
+    Manager.recordingLoop()
+    if (keyboard.is_pressed('q')):
+      break
+  logging.info("Recording %s finished", t.getName())
 
 def run():
   TrainingThread = threading.Thread(target=trainThread)

@@ -13,10 +13,14 @@ class GuiInterface(ABC):
 class GUISmartHome(GuiInterface):
   def __init__(self):
     self.GUIQueue = None
-  # TODO: how to do commands handling 
+
   def handle(self, command):
-    logging.warning("handle not implemented!")
+    pass
   # checks windows events
   def checkEvents(self):
-    logging.warning("checkEvents not implemented!")
+    pass
+
+  def isCommandAvailable(self):
+    pass
+  
   # TODO: establish all utilities that gui must do with team
