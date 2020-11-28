@@ -14,7 +14,7 @@ class Manager:
     self.commandManager = CommandManager
     self.GUI = GUISmartHome
   
-  # Runs gui commands if any are aquired in self.GUIQueue
+  # Runs gui commands if any are acquired in self.GUIQueue
   # check windows gui events
   def guiThread(self):
     while True:
@@ -24,17 +24,17 @@ class Manager:
 
   def recordingThread(self):
     while True:
-      if self.recorder.isAudioLevelAboveThreashold():
+      if self.recorder.isAudioLevelAboveThreshold():
         self.recorder.runAcquisition()
 
-  # Recognise recording and exchanges informations between all objects  
+  # Recognize recording and exchanges information between all objects  
   def dataCalculationThread(self):
     while True:
       if self.recorder.isDataAvailable():
         data = self.recorder.exportRecording()
         data = self.preprocessUnit.process(data)
         data = self.featureExtractor.extract(data)
-        command = self.CommandManager.recognise(data)
+        command = self.CommandManager.recognize(data)
         self.GUI.putIntoQueue(command)
 
   def trainThread(self):

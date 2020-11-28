@@ -1,11 +1,9 @@
-from abc import ABC, abstractclassmethod
-
 class ClassificatorInterface(ABC):
-  @abstractclassmethod
+  @abstractmethod
   def likelyhood(self, extractedFeatures):
     pass
 
-  @abstractclassmethod
+  @abstractmethod
   def train(self, extractedFeaturesList):
     pass
 
@@ -14,5 +12,3 @@ class GMM(ClassificatorInterface):
 
 class DTW(ClassificatorInterface):
   pass
-
-# EOF
