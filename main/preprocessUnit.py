@@ -2,6 +2,9 @@
 class PreprocessUnit:
   def __init__(self, desiredLoudnessLevel, downsamplingFrequency):
     pass
+  # Multiplying beginning and end of the audio data with cos ramp
+  def addWindow(self, array):
+    pass
   # deletes constant component from the recording 
   def deleteAverage(self, inputArrayRecording):
     pass

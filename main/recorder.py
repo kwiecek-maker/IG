@@ -18,10 +18,6 @@ class Recorder:
   def isDataAvailable(self):
     pass
   
-  # Multiplying beginning and end of the audio data with cos ramp
-  def addWindow(self, array):
-    pass
-  
   # exports and delete acquiesced recording from acquiredRecording Queue,
   # adds window to it and exports it as numpy array, 
   def exportRecording(self):
