@@ -6,8 +6,8 @@ class Recorder:
     self.threshold = thresholdLevel
     self.acquiredRecordingQueue = None 
     
-  # check if  audio buffer exceeds threshold 
-  def isAudioLevelAboveThreshold(self, buffer):
+  # check if given audio buffer exceeds threshold 
+  def isAudioLevelAboveThreshold(self):
     pass
   
   # records current data into numpy array and put it into acquiredRecordingQueue

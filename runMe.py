@@ -18,6 +18,12 @@ Manager = manager.Manager(FeatureExtractor, CommandManager, Gui)
 logging.basicConfig(filename = 'logging.log', encoding = 'utf-8', level = logging.DEBUG)
 logging.info("Starting program")
 
+def acquiringDataThread():
+  t = threading.current_thread()
+  logging.info("acquiring Data %s has started", t.getName())
+  Manager.acquiringDataThread()
+  logging.info("Acquiring Data %s has ended!", t.getName())
+
 def trainThread():
   t = threading.current_thread()
   logging.info("Training %s started", t.getName())
@@ -52,6 +58,10 @@ def recordingThread():
   logging.info("Recording %s finished", t.getName())
 
 def run():
+  acquiringThread = threading.Thread(target=acquiringDataThread)
+  acquiringThread.start()
+  acquiringThread.join()
+  
   TrainingThread = threading.Thread(target=trainThread)
   TrainingThread.start()
   TrainingThread.join()
