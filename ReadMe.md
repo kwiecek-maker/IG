@@ -1,4 +1,5 @@
-# Speech recognition program made by students from AGH. 
+# Speech recognition program 
+## made by students from AGH ;-)
 
 Program listen for basic commands via microphone, collects recording thats exceeds given RMS level,
 Extract Features from collected recording and assigns acquired data to right command.
