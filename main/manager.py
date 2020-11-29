@@ -1,10 +1,9 @@
 import main.recorder as recorder
 import main.preprocessUnit as preprocess
 
-import threading
 import logging
 
-#  manages all object used in this program  
+# Manages all object used in Program
 class Manager:
   def __init__(self, FeatureExtractor, CommandManager, GUISmartHome):
     self.recorder = recorder.Recorder(thresholdLevel = 0.5)
@@ -36,5 +35,6 @@ class Manager:
   def trainThread(self):
     for _ in range(10):
       logging.info("training...")
-    # Discuss with the Team how should we train data
+      
+#EOF
         

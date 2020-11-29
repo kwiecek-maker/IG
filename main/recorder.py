@@ -5,15 +5,26 @@ class Recorder:
   def __init__(self, thresholdLevel):
     self.threshold = thresholdLevel
     self.acquiredRecordingQueue = None 
-  def isAudioLevelAboveThreshold(self):
+    
+  # check if  audio buffer exceeds threshold 
+  def isAudioLevelAboveThreshold(self, buffer):
     pass
+  
   # records current data into numpy array and put it into acquiredRecordingQueue
   def runAcquisition(self):
     pass
+  
   # returns if acquiredRecordingQueue is not empty
   def isDataAvailable(self):
     pass
-  # exports and delete acquiesced recording from acquiredRecording Queue
-  # as numpy array, 
+  
+  # Multiplying beginning and end of the audio data with cos ramp
+  def addWindow(self, array):
+    pass
+  
+  # exports and delete acquiesced recording from acquiredRecording Queue,
+  # adds window to it and exports it as numpy array, 
   def exportRecording(self):
     pass
+
+#EOF

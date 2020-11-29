@@ -25,3 +25,5 @@ class MFCC(FeatureExtractorInterface):
 class HFCC(FeatureExtractorInterface):
   def extract():
     pass
+  
+#EOF

@@ -5,7 +5,6 @@ import GUI.gui as GUI
 
 import threading 
 import logging
-import time
 import keyboard
 
 # Clearing the logs
@@ -16,7 +15,6 @@ CommandManager = command.CommandManager()
 Gui = GUI.GUISmartHome()
 
 Manager = manager.Manager(FeatureExtractor, CommandManager, Gui) 
-  
 logging.basicConfig(filename = 'logging.log', encoding = 'utf-8', level = logging.DEBUG)
 logging.info("Starting program")
 

@@ -13,11 +13,11 @@ class CommandFactory:
   def readCommands(self):
     pass
   
-  def makeCommand(self, name, dataList):
+  def createCommand(self, name, dataList):
     return Command(copy(self.classificator), name, dataList)
 
-   # creates List of used commands in program
-  def makeCommandList(self):
+   # returns List of all used commands in program
+  def getCommandList(self):
     pass
 
 # Manages all commands created by Command factory 
@@ -35,16 +35,16 @@ class CommandManager:
   def recognize(self, extractedData):
     logging.warning("no implemented yet!")
 
-# Mediator of the classificator
+# Mediator of the classificator. 
 class Command:
   def __init__(self, classificator, commandName, dataList):
     self.classificator = classificator
     self.commandName = commandName
     self.dataList = dataList
 
-  def train():
-    pass
-
+  def train(self, dataList):
+    self.classificator.train(dataList)
+    
   def likelyhood(self, extractedFeatures):
     return self.classificator.likelyhood(extractedFeatures)
 
