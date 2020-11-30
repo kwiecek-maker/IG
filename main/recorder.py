@@ -52,8 +52,8 @@ class Recorder:
           device_info = sd.query_devices(self.args.device, 'input')
           self.args.samplerate = device_info['default_samplerate']
 
-      length = int(self.args.window * self.args.samplerate / (1000 * self.args.downsample))
-      plotData = np.zeros((length, len(self.args.channels)))
+      bufferLength = int(self.args.window * self.args.samplerate / (1000 * self.args.downsample))
+      plotData = np.zeros((bufferLength, len(self.args.channels)))
       fig = self.prepareFancyPlot(plotData)
 
       recordingStream = sd.InputStream(
