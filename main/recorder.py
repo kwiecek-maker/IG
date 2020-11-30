@@ -22,16 +22,7 @@ class Recorder:
   def __init__(self, thresholdLevel):
     self.threshold = thresholdLevel
     
-    # All argument parsing, that is used to set up audio for recording
-    [self.args, self.remaining, self.parentParser] = self.initParentParser()
-    self.childParser = self.initChildParser(self.parentParser)
-    self.prepareChildParser(self.childParser)
-    self.args = self.childParser.parse_args(self.remaining)
-    
-    # Channel mapping for audio recording
-    if any(channel < 1 for channel in self.args.channels):
-        self.parser.error('|channel|: must be >= 1')
-    self.channelMapping = [channel - 1 for channel in self.args.channels]  
+    self.setUpArgParsingForAudioDevice()
     
     self.bufferQueue = queue.Queue()
     self.acquiredBuffersQueue = queue.Queue()
@@ -43,17 +34,15 @@ class Recorder:
     except queue.Empty:
       return None
   
-  # returns if acquiredRecordingQueue is not empty
   def isDataAvailable(self):
     return self.acquiredRecordingQueue.empty()
   
   def run(self):
     try:
-      if self.args.samplerate is None:
-          device_info = sd.query_devices(self.args.device, 'input')
-          self.args.samplerate = device_info['default_samplerate']
+      self.checkSampleRate()
 
       bufferLength = int(self.args.window * self.args.samplerate / (1000 * self.args.downsample))
+      
       plotData = np.zeros((bufferLength, len(self.args.channels)))
       fig = self.prepareFancyPlot(plotData)
 
@@ -61,13 +50,30 @@ class Recorder:
           device=self.args.device, channels=max(self.args.channels),
           samplerate=self.args.samplerate, callback=self.collectAudioBuffer)
       
-      # Voice Animation, Fun :D
-      ani = FuncAnimation(fig, self.updateRecorder, interval=self.args.interval, blit=True)
+      
+      animation = FuncAnimation(fig, self.updateRecorder, interval=self.args.interval, blit=True)
       with recordingStream:
           plt.show()
     except Exception as e:
         self.parser.exit(type(e).__name__ + ': ' + str(e))
-      
+  
+  def checkSampleRate(self):
+    if self.args.samplerate is None:
+          device_info = sd.query_devices(self.args.device, 'input')
+          self.args.samplerate = device_info['default_samplerate']
+  
+  def setUpArgParsingForAudioDevice(self):
+    [self.args, self.remaining, self.parentParser] = self.initParentParser()
+    self.childParser = self.initChildParser(self.parentParser)
+    self.prepareChildParser(self.childParser)
+    self.args = self.childParser.parse_args(self.remaining)
+    
+    # Channel mapping for audio recording
+    if any(channel < 1 for channel in self.args.channels):
+        self.parser.error('|channel|: must be >= 1')
+    self.channelMapping = [channel - 1 for channel in self.args.channels]  
+    
+    
   def collectAudioBuffer(self,inData, status):
     if status:
         print(status, file=sys.stderr)
