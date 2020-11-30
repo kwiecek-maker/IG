@@ -1,11 +1,12 @@
-import logging
 import argparse
-import queue
-import sys
-from matplotlib.animation import FuncAnimation
-import matplotlib.pyplot as plt
+import logging
 import numpy as np
+import matplotlib.pyplot as plt
+import queue
 import sounddevice as sd
+import sys
+
+from matplotlib.animation import FuncAnimation
 
 #Helper function for argument parsing.
 def intOrString(text):
