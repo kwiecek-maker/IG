@@ -43,18 +43,18 @@ class Recorder:
 
       bufferLength = int(self.args.window * self.args.samplerate / (1000 * self.args.downsample))
       
-      plotData = np.zeros((bufferLength, len(self.args.channels)))
-      fig = self.prepareFancyPlot(plotData)
+      self.plotData = np.zeros((bufferLength, len(self.args.channels)))
+      fig = self.prepareFancyPlot(self.plotData)
 
       recordingStream = sd.InputStream(
           device=self.args.device, channels=max(self.args.channels),
           samplerate=self.args.samplerate, callback=self.collectAudioBuffer)
       
-      animation = FuncAnimation(fig, self.updateRecorder, interval=self.args.interval, blit=True)
+      animation = FuncAnimation(self.fig, self.updateRecorder, interval=self.args.interval, blit=True)
       with recordingStream:
           plt.show()
     except Exception as e:
-        self.parser.exit(type(e).__name__ + ': ' + str(e))
+        self.childParser.exit(type(e).__name__ + ': ' + str(e))
   
   def checkSampleRate(self):
     if self.args.samplerate is None:
@@ -73,43 +73,42 @@ class Recorder:
     self.channelMapping = [channel - 1 for channel in self.args.channels]  
     
     
-  def collectAudioBuffer(self,inData, status):
+  def collectAudioBuffer(self,inData, frames, time, status):
     if status:
         print(status, file=sys.stderr)
     # Fancy indexing with mapping creates a necessary copy.
     self.bufferQueue.put(inData[::self.args.downsample, self.channelMapping])
   
   def prepareFancyPlot(self, plotData):
-    fig, ax = plt.subplots()
-    lines = ax.plot(plotData)
+    self.fig, self.ax = plt.subplots()
+    self.lines = self.ax.plot(plotData)
     if len(self.args.channels) > 1:
-        ax.legend(['channel {}'.format(c) for c in self.args.channels],
+        self.ax.legend(['channel {}'.format(c) for c in self.args.channels],
                   loc='lower left', ncol=len(self.args.channels))
-    ax.axis((0, len(plotData), -1, 1))
-    ax.set_yticks([0])
-    ax.yaxis.grid(True)
-    ax.tick_params(bottom=False, top=False, labelbottom=False,
+    self.ax.axis((0, len(plotData), -1, 1))
+    self.ax.set_yticks([0])
+    self.ax.yaxis.grid(True)
+    self.ax.tick_params(bottom=False, top=False, labelbottom=False,
                     right=False, left=False, labelleft=False)
-    fig.tight_layout(pad=0)
-    return [fig, ax, lines]
+    self.fig.tight_layout(pad=0)
+    return [self.fig, self.ax, self.lines]
   
-  def updateRecorder(self):
-    global plotData
+  def updateRecorder(self, frame):
     while True:
         try:
             data = self.bufferQueue.get_nowait()
         except queue.Empty:
             break
         shift = len(data)
-        plotData = np.roll(plotData, -shift, axis=0)
-        plotData[-shift:, :] = data
+        self.plotData = np.roll(self.plotData, -shift, axis=0)
+        self.plotData[-shift:, :] = data
     for column, line in enumerate(self.lines):
-        line.set_ydata(plotData[:, column])
+        line.set_ydata(self.plotData[:, column])
     return self.lines
   
   # check if given audio buffer exceeds threshold 
   @staticmethod
-  def isAudioLevelAboveThreshold(buffer):
+  def isBufferLevelAboveThreshold(buffer):
     pass
   
   # Creates argument parser for all audio devices available.
