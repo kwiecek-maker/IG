@@ -28,6 +28,7 @@ class Recorder:
     self.prepareChildParser(self.childParser)
     self.args = self.childParser.parse_args(self.remaining)
     
+    # Channel mapping for audio recording
     if any(channel < 1 for channel in self.args.channels):
         self.parser.error('|channel|: must be >= 1')
     self.channelMapping = [channel - 1 for channel in self.args.channels]  
@@ -60,7 +61,7 @@ class Recorder:
           device=self.args.device, channels=max(self.args.channels),
           samplerate=self.args.samplerate, callback=self.collectAudioBuffer)
       
-      # Voice Animation
+      # Voice Animation, Fun :D
       ani = FuncAnimation(fig, self.updateRecorder, interval=self.args.interval, blit=True)
       with recordingStream:
           plt.show()
