@@ -50,7 +50,6 @@ class Recorder:
           device=self.args.device, channels=max(self.args.channels),
           samplerate=self.args.samplerate, callback=self.collectAudioBuffer)
       
-      
       animation = FuncAnimation(fig, self.updateRecorder, interval=self.args.interval, blit=True)
       with recordingStream:
           plt.show()
