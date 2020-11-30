@@ -20,7 +20,6 @@ class Recorder:
 
   def __init__(self, thresholdLevel):
     self.threshold = thresholdLevel
-    self.acquiredRecordingQueue = None 
     
     # All argument parsing, that is used to set up audio for recording
     [self.args, self.remaining, self.parentParser] = self.initParentParser()
@@ -30,9 +29,12 @@ class Recorder:
     
     if any(channel < 1 for channel in self.args.channels):
         self.parser.error('|channel|: must be >= 1')
-    self.mapping = [channel - 1 for channel in self.args.channels]  
+    self.channelMapping = [channel - 1 for channel in self.args.channels]  
+    
     self.bufferQueue = queue.Queue()
-        
+    self.acquiredBuffersQueue = queue.Queue()
+    self.acquiredRecordingQueue = queue.Queue() 
+    
   # check if given audio buffer exceeds threshold 
   def isAudioLevelAboveThreshold(self):
     pass
@@ -70,7 +72,7 @@ class Recorder:
     if status:
         print(status, file=sys.stderr)
     # Fancy indexing with mapping creates a necessary copy.
-    self.bufferQueue.put(inData[::self.args.downsample, self.mapping])
+    self.bufferQueue.put(inData[::self.args.downsample, self.channelMapping])
   
   def prepareFancyPlot(self, plotData):
     fig, ax = plt.subplots()
