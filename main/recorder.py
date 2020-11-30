@@ -8,7 +8,7 @@ import sys
 
 from matplotlib.animation import FuncAnimation
 
-#Helper function for argument parsing.
+# Helper function for argument parsing.
 def intOrString(text):
     try:
         return int(text)
@@ -35,18 +35,16 @@ class Recorder:
     self.bufferQueue = queue.Queue()
     self.acquiredBuffersQueue = queue.Queue()
     self.acquiredRecordingQueue = queue.Queue() 
-    
-  # check if given audio buffer exceeds threshold 
-  def isAudioLevelAboveThreshold(self):
-    pass
   
-  # records current data into numpy array and put it into acquiredRecordingQueue
-  def runAcquisition(self):
-    pass
+  def exportRecording(self):
+    try:
+      return self.acquiredRecordingQueue.get_nowait()
+    except queue.Empty:
+      return None
   
   # returns if acquiredRecordingQueue is not empty
   def isDataAvailable(self):
-    pass
+    return self.acquiredRecordingQueue.empty()
   
   def run(self):
     try:
@@ -102,6 +100,11 @@ class Recorder:
     for column, line in enumerate(self.lines):
         line.set_ydata(plotData[:, column])
     return self.lines
+  
+  # check if given audio buffer exceeds threshold 
+  @staticmethod
+  def isAudioLevelAboveThreshold(buffer):
+    pass
   
   # Creates argument parser for all audio devices available.
   @staticmethod

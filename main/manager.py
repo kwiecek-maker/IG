@@ -24,8 +24,7 @@ class Manager:
     self.GUI.checkEvents()
     
   def recordingLoop(self):
-    if self.recorder.isAudioLevelAboveThreshold():
-      self.recorder.runAcquisition()
+    recorder.run()
 
   # Recognize recording and exchanges information between all objects  
   def dataCalculationLoop(self):
