@@ -143,7 +143,7 @@ class Recorder:
     '-d', '--device', type=intOrString,
     help='input device (numeric ID or substring)')
     parser.add_argument(
-    '-w', '--window', type=float, default=200, metavar='DURATION',
+    '-w', '--window', type=float, default=256, metavar='DURATION',
     help='visible time slot (default: %(default)s ms)')
     parser.add_argument(
     '-i', '--interval', type=float, default=30,
