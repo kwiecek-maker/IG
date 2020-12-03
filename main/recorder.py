@@ -14,8 +14,8 @@ class Recorder:
     self.threshold = thresholdLevel
     self.bufferSize = 256
     self.channels = 1
-    self.bufferEmptyEndingRecordingLimit = 40
-    self.currentBufferNumber = 0
+    self.bufferNumberLimitFromExceededThreshold = 40
+    self.bufferNumberFromExceededThreshold = 0
     
     sd.default.samplerate = self.sampleRate
     sd.default.channels = self.channels
@@ -46,17 +46,17 @@ class Recorder:
   def processBuffer(self, buffer):
     if self.isBufferLevelAboveThreshold(buffer):
       self.acquiredBuffersQueue.put(buffer)
-      self.currentBufferNumber = 0
-    elif not self.acquiredBuffersQueue.empty() and self.currentBufferNumber == self.bufferEmptyEndingRecordingLimit:
+      self.bufferNumberFromExceededThreshold = 0
+    elif not self.acquiredBuffersQueue.empty() and self.bufferNumberFromExceededThreshold == self.bufferNumberLimitFromExceededThreshold:
       data = np.array([])  
       while not self.acquiredBuffersQueue.empty():
         data = np.concatenate((data, self.acquiredBuffersQueue.get_nowait()))
       self.acquiredRecordingQueue.put(data)
       logging.info("Recording Acquired: length: " + str(float(len(data)) / self.sampleRate)[0:5] + "s")
-      self.currentBufferNumber = 0
+      self.bufferNumberFromExceededThreshold = 0
     elif not self.acquiredBuffersQueue.empty():
       self.acquiredBuffersQueue.put(buffer)
-      self.currentBufferNumber += 1
+      self.bufferNumberFromExceededThreshold += 1
   
   # check if given audio buffer exceeds RMS threshold 
   def isBufferLevelAboveThreshold(self, buffer):
