@@ -54,6 +54,7 @@ class Recorder:
         while not self.acquiredBuffersQueue.empty():
           data = np.concatenate((data, self.acquiredBuffersQueue.get_nowait()))
         self.acquiredRecordingQueue.put(data)
+        logging.info("Recording Acquired: length: " + str(float(len(data)) / self.sampleRate)[0:5] + "s")
         self.currentBufferNumber = 0
       elif not self.acquiredBuffersQueue.empty():
         self.acquiredBuffersQueue.put(buffer)

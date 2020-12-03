@@ -51,10 +51,7 @@ def dataCalculationThread():
 def recordingThread():
   t = threading.current_thread()
   logging.info("Recording %s started", t.getName())
-  while True:
-    Manager.recordingLoop()
-    if (keyboard.is_pressed('q')):
-      break
+  Manager.recordingThread()
   logging.info("Recording %s finished", t.getName())
 
 def run():
