@@ -1,21 +1,9 @@
-import argparse
-from os import fsdecode
 import keyboard
-import logging
 import numpy as np
 import math
-import matplotlib.pyplot as plt
 import queue
 import sounddevice as sd
-
-
-
-# Helper function for argument parsing.
-def intOrString(text):
-    try:
-        return int(text)
-    except ValueError:
-        return text
+import logging
 
 # Recorder is listening for commands, starts/stop aquairing them
 # and exports recorded data as numpy array
@@ -26,6 +14,8 @@ class Recorder:
     self.threshold = thresholdLevel
     self.bufferSize = 256
     self.channels = 1
+    self.bufferEmptyEndingRecordingLimit = 40
+    self.currentBufferNumber = 0
     
     sd.default.samplerate = self.sampleRate
     sd.default.channels = self.channels
@@ -58,11 +48,19 @@ class Recorder:
     if buffer is not None:
       if self.isBufferLevelAboveThreshold(buffer):
         self.acquiredBuffersQueue.put(buffer)
-      elif not self.acquiredBuffersQueue.empty():
-        data = np.array([])
+        self.currentBufferNumber = 0
+      elif not self.acquiredBuffersQueue.empty() and self.currentBufferNumber == self.bufferEmptyEndingRecordingLimit:
+        data = np.array([])  
         while not self.acquiredBuffersQueue.empty():
           data = np.concatenate((data, self.acquiredBuffersQueue.get_nowait()))
         self.acquiredRecordingQueue.put(data)
+        self.currentBufferNumber = 0
+        logging.info("RECORDING ACQUIRED!")
+      elif not self.acquiredBuffersQueue.empty():
+        self.acquiredBuffersQueue.put(buffer)
+        self.currentBufferNumber += 1
+      
+      
         
   # check if given audio buffer exceeds threshold 
   def isBufferLevelAboveThreshold(self, buffer):
