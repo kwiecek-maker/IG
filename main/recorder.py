@@ -7,8 +7,7 @@ import math
 import matplotlib.pyplot as plt
 import queue
 import sounddevice as sd
-import sys
-import time
+
 
 
 # Helper function for argument parsing.
@@ -26,7 +25,7 @@ class Recorder:
     self.sampleRate = 44100
     self.threshold = thresholdLevel
     self.bufferSize = 256
-    self.channels = 2
+    self.channels = 1
     
     sd.default.samplerate = self.sampleRate
     sd.default.channels = self.channels
@@ -45,31 +44,29 @@ class Recorder:
     return not self.acquiredRecordingQueue.empty()
   
   def run(self):
-    recordingStream = sd.InputStream(self.sampleRate, blocksize=self.bufferSize, device=1)
+    recordingStream = sd.InputStream(self.sampleRate, blocksize=self.bufferSize, device=1, dtype=('float32'))
     recordingStream.start()
     while True:
       if keyboard.is_pressed('q'):
-          break
-      try:
-        buffer = recordingStream.read(self.bufferSize)
+        break
+      if recordingStream.read_available >= self.bufferSize:
+        buffer = recordingStream.read(self.bufferSize)[0].flatten()
         self.updateRecorder(buffer)
-      except Exception as e:
-        logging.error(type(e).__name__ + ': ' + str(e))
     recordingStream.stop()
     
   def updateRecorder(self, buffer):
     if buffer is not None:
       if self.isBufferLevelAboveThreshold(buffer):
         self.acquiredBuffersQueue.put(buffer)
-      elif self.acquiredBuffersQueue.not_empty():
+      elif not self.acquiredBuffersQueue.empty():
         data = np.array([])
-        while self.acquiredRecordingQueue.not_empty():
-          np.concatenate(data, self.acquiredBuffersQueue.get_nowait())
+        while not self.acquiredBuffersQueue.empty():
+          data = np.concatenate((data, self.acquiredBuffersQueue.get_nowait()))
         self.acquiredRecordingQueue.put(data)
         
   # check if given audio buffer exceeds threshold 
   def isBufferLevelAboveThreshold(self, buffer):
-    rmsValue = math.sqrt(np.sum(buffer[:,1] * buffer[:,1]) / self.bufferSize)
+    rmsValue = math.sqrt(np.sum(buffer * buffer) / self.bufferSize)
     return rmsValue >= self.threshold
 
   
