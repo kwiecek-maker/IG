@@ -20,7 +20,6 @@ class Recorder:
     sd.default.samplerate = self.sampleRate
     sd.default.channels = self.channels
     
-    self.bufferQueue = queue.Queue()
     self.acquiredBuffersQueue = queue.Queue()
     self.acquiredRecordingQueue = queue.Queue() 
 
