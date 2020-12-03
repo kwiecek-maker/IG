@@ -6,7 +6,6 @@ import keyboard
 import threading
 import matplotlib.pyplot as plt
 
-
 open('record_test.log', 'w').close()
 
 logging.basicConfig(filename = 'record_test.log', level = logging.DEBUG)
@@ -18,7 +17,8 @@ def plotRecordingThread():
   logging.info("Started plotting recording %s", t.getName())
   while True:
     if rec.isDataAvailable():
-      print(str(rec.exportRecording()))
+      recording = rec.exportRecording()
+      logging.info("Recording Acquired: length: " + str(float(len(recording)) / rec.sampleRate)[0:4] + "s")
     if keyboard.is_pressed('q'):
       break
   logging.info("Ending recording %s", t.getName())

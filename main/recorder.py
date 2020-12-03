@@ -23,7 +23,7 @@ class Recorder:
     self.bufferQueue = queue.Queue()
     self.acquiredBuffersQueue = queue.Queue()
     self.acquiredRecordingQueue = queue.Queue() 
-  
+
   def exportRecording(self):
     try:
       return self.acquiredRecordingQueue.get_nowait()
@@ -34,7 +34,7 @@ class Recorder:
     return not self.acquiredRecordingQueue.empty()
   
   def run(self):
-    recordingStream = sd.InputStream(self.sampleRate, blocksize=self.bufferSize, device=1, dtype=('float32'))
+    recordingStream = sd.InputStream(self.sampleRate, blocksize=self.bufferSize, dtype=('float32'))
     recordingStream.start()
     while True:
       if keyboard.is_pressed('q'):
@@ -55,13 +55,10 @@ class Recorder:
           data = np.concatenate((data, self.acquiredBuffersQueue.get_nowait()))
         self.acquiredRecordingQueue.put(data)
         self.currentBufferNumber = 0
-        logging.info("RECORDING ACQUIRED!")
       elif not self.acquiredBuffersQueue.empty():
         self.acquiredBuffersQueue.put(buffer)
         self.currentBufferNumber += 1
-      
-      
-        
+  
   # check if given audio buffer exceeds threshold 
   def isBufferLevelAboveThreshold(self, buffer):
     rmsValue = math.sqrt(np.sum(buffer * buffer) / self.bufferSize)
