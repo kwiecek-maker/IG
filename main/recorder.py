@@ -41,10 +41,10 @@ class Recorder:
         break
       if recordingStream.read_available >= self.bufferSize:
         buffer = recordingStream.read(self.bufferSize)[0].flatten()
-        self.updateRecorder(buffer)
+        self.processBuffer(buffer)
     recordingStream.stop()
-    
-  def updateRecorder(self, buffer):
+  
+  def processBuffer(self, buffer):
     if self.isBufferLevelAboveThreshold(buffer):
       self.acquiredBuffersQueue.put(buffer)
       self.currentBufferNumber = 0
@@ -59,11 +59,9 @@ class Recorder:
       self.acquiredBuffersQueue.put(buffer)
       self.currentBufferNumber += 1
   
-  # check if given audio buffer exceeds threshold 
+  # check if given audio buffer exceeds RMS threshold 
   def isBufferLevelAboveThreshold(self, buffer):
     rmsValue = math.sqrt(np.sum(buffer * buffer) / self.bufferSize)
     return rmsValue >= self.threshold
-
-  
 
   #EOF
