@@ -76,11 +76,10 @@ class MFCC(FeatureExtractorInterface):
         self.logfilteredArray = np.log10(self.filteredArray)
 
     def _dct(self):
-
         self.mfcc_cepstras = np.zeros((self.nceps, self.frames_n))
         for i in range(self.frames_n):
-            #todo: skonczyc
-            pass
+            for j in range(self.nceps):
+                self.mfcc_cepstras[j, i] = np.sum(self.logfilteredArray[:, i]*np.cos(j*np.arange(0.5, self.nfilt+0.5)*np.pi/self.nfilt))
 
     def deltas(self):
         pass
@@ -97,9 +96,8 @@ class MFCC(FeatureExtractorInterface):
         self._applymelfbank()
         # logarithm
         self._logfbank()
-        # decorelating filterbank coefs
+        # decorelating filterbank coefs - caltulating mfcc cepstras
         self._dct()
-
 
 
 class HFCC(FeatureExtractorInterface):
