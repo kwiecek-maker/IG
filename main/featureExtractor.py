@@ -4,10 +4,10 @@ import numpy as np
 
 class FeatureExtractorInterface(ABC):
 
-    def __init__(self, soundframesArray):
-        self.soundArray = soundframesArray
-        self.frames_n = self.soundArray.shape[1]
-        self.frame_len = self.soundArray.shape[0]
+    def __init__(self, soundWindowedFramesArray):
+        self.soundWindowedArray = soundWindowedFramesArray
+        self.frames_n = self.soundWindowedArray.shape[1]
+        self.frame_len = self.soundWindowedArray.shape[0]
 
     @abstractmethod
     def exctract(self):
@@ -16,19 +16,22 @@ class FeatureExtractorInterface(ABC):
 
 class MFCC(FeatureExtractorInterface):
 
-    def __init__(self, soundframesArray, samplerate=44100, nceps=13, nfilt=26, nfft=512):
-        super(MFCC, self).__init__(soundframesArray)
+    def __init__(self, soundWindowedFramesArray, samplerate=44100, nceps=13, nfilt=26, nfft=512):
+        super(MFCC, self).__init__(soundWindowedFramesArray)
         self.nceps = nceps
         self.nfilt = nfilt
         self.nfft = nfft
         self.samplerate = samplerate
 
     def _fft(self):
-        w = hanning(self.frame_len)
         self.spectrumArray = np.zeros((self.nfft, self.frames_n))
         for i in range(self.frames_n):
+            windowedFrame = self.soundWindowedArray[:, i]
+            if self.nfft > self.frame_len:
+                # padding-zero at the end of windowedFrame
+                windowedFrame = np.append(windowedFrame, np.zeros(self.nfft-self.frame_len))
             for k in range(self.nfft):
-                self.spectrumArray[k, i] = (1/self.frame_len)*np.abs(np.sum(self.soundArray[:, i]*w*np.exp((-1j*2*np.pi*k*np.arange(self.frame_len))/self.frame_len)))**2
+                self.spectrumArray[k, i] = (1/self.nfft)*np.abs(np.sum(windowedFrame*np.exp((-1j*2*np.pi*k*np.arange(self.nfft))/self.nfft)))**2
         self.spectrumArray = self.spectrumArray[:self.nfft//2+1, :]
 
     def _freq2mel(self, freq):
