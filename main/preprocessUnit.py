@@ -38,14 +38,16 @@ class PreprocessUnit:
 
     # Deletes constant component from the recording
     def deleteAverage(self, inputArrayRecording):
-      average = np.mean(inputArrayRecording)
-      inputArrayRecordingWithoutAverage = inputArrayRecording - average
+        average = np.mean(inputArrayRecording)
+        inputArrayRecordingWithoutAverage = inputArrayRecording - average
 
-      return inputArrayRecordingWithoutAverage
+        return inputArrayRecordingWithoutAverage
 
     # Normalize given recording to the self.desiredLoudnessLevel
     def normalize(self, inputArrayRecording):
-        return np.multiply(self.desiredLoudnessLevel, inputArrayRecording)
+        inputArrayRecordingNormalize = np.multiply(self.desiredLoudnessLevel, inputArrayRecording)
+
+        return inputArrayRecordingNormalize
 
     # Preemphasis filter
     def preemphase(self, inputArrayRecording):
@@ -55,9 +57,10 @@ class PreprocessUnit:
 
     # Downsample recording to the self.downsamlingFrequency
     def downsample(self, inputArrayRecording):
-        numberOfSamples = round(len(inputArrayRecording)*(self.downsamplingFrequency/self.samplingFrequency))
+        downsamplingFactor = int(round(self.samplingFrequency/self.downsamplingFrequency))
+        inputArrayRecordingDecimate = signal.decimate(inputArrayRecording, q=downsamplingFactor, ftype='fir')
 
-        return signal.resample(inputArrayRecording, numberOfSamples)
+        return inputArrayRecordingDecimate
 
     # Split signal into frames (windowing), frameLength = 25 (25 ms), overlap = 0.5 (50%)
     def segmentation(self, inputArrayRecording):
