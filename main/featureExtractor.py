@@ -81,9 +81,9 @@ class MFCC(FeatureExtractorInterface):
         self.logfilteredArray = np.log10(self.filteredArray)
 
     def dct(self):
-        self.mfccCepstras = np.zeros((self.numberOfCepstras, self.numberOfSegments))
+        self.mfccFeaturesArray = np.zeros((self.numberOfCepstras, self.numberOfSegments))
         for i, j in itertools.product(range(self.numberOfSegments), range(self.numberOfCepstras)):
-            self.mfccCepstras[j, i] = np.sum(
+            self.mfccFeaturesArray[j, i] = np.sum(
                 self.logfilteredArray[:, i]*np.cos(j*np.arange(0.5, self.numberOfMelFilters+0.5)*np.pi/self.numberOfMelFilters))
 
     def exctract(self):
@@ -92,6 +92,7 @@ class MFCC(FeatureExtractorInterface):
         self.applymelfbank()
         self.logfbank()
         self.dct()
+        return self.mfccFeaturesArray
 
 
 class HFCC(FeatureExtractorInterface):
