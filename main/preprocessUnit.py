@@ -16,7 +16,7 @@ class PreprocessUnit:
         self.overlap = overlap
 
     # Multiplying beginning and end of the audio data with cos ramp
-    def cosineRamp(self, inputArrayRecording):
+    def cosineRamp(self, inputArraySignal):
         nOnset = int(self.onset * self.samplingFrequency)
         nOffset = int(self.offset * self.samplingFrequency)
 
@@ -25,64 +25,65 @@ class PreprocessUnit:
 
         for n in range(nOnset):
             intensityNum = 0.5 - 0.5 * np.cos(np.pi * n / (nOnset - 1))
-            raisedSignal[n] = intensityNum * inputArrayRecording[:nOnset][n]
+            raisedSignal[n] = intensityNum * inputArraySignal[:nOnset][n]
 
         for n in range(nOffset):
             intensityNum = 0.5 + 0.5 * np.cos(np.pi * n / (nOffset - 1))
-            muteSignal[n] = intensityNum * inputArrayRecording[-nOffset:][n]
+            muteSignal[n] = intensityNum * inputArraySignal[-nOffset:][n]
 
-        inputArrayRecording[:nOnset] = raisedSignal
-        inputArrayRecording[-nOffset:] = muteSignal
+        inputArraySignal[:nOnset] = raisedSignal
+        inputArraySignal[-nOffset:] = muteSignal
 
-        return np.array(inputArrayRecording)
+        return np.array(inputArraySignal)
 
-    # Deletes constant component from the recording
-    def deleteAverage(self, inputArrayRecording):
-        average = np.mean(inputArrayRecording)
-        inputArrayRecordingWithoutAverage = inputArrayRecording - average
+    # Deletes constant component from the data
+    def deleteAverage(self, inputArraySignal):
+        average = np.mean(inputArraySignal)
+        inputArraySignalWithoutAverage = inputArraySignal - average
 
-        return inputArrayRecordingWithoutAverage
+        return inputArraySignalWithoutAverage
 
-    # Normalize given recording to the self.desiredLoudnessLevel
-    def normalize(self, inputArrayRecording):
-        inputArrayRecordingNormalize = np.multiply(self.desiredLoudnessLevel, inputArrayRecording)
+    # Normalize given data to the self.desiredLoudnessLevel
+    def normalize(self, inputArraySignal):
+        inputArraySignalNormalize = np.multiply(self.desiredLoudnessLevel, inputArraySignal)
 
-        return inputArrayRecordingNormalize
+        return inputArraySignalNormalize
 
     # Preemphasis filter
-    def preemphase(self, inputArrayRecording):
-        emphasizedSignal = np.append(inputArrayRecording[0], inputArrayRecording[1:] - self.coefficient * inputArrayRecording[:-1])
+    def preemphase(self, inputArraySignal):
+        emphasizedSignal = np.append(inputArraySignal[0], inputArraySignal[1:] - self.coefficient * inputArraySignal[:-1])
 
         return emphasizedSignal
 
-    # Downsample recording to the self.downsamlingFrequency
-    def downsample(self, inputArrayRecording):
-        downsamplingFactor = int(round(self.samplingFrequency/self.downsamplingFrequency))
-        inputArrayRecordingDecimate = signal.decimate(inputArrayRecording, q=downsamplingFactor, ftype='fir')
+    # Downsample data to the self.downsamlingFrequency
+    def downsample(self, inputArraySignal):
+        downsamplingFactor = int(round(self.samplingFrequency / self.downsamplingFrequency))
+        inputArraySignalDecimate = signal.decimate(inputArraySignal, q=downsamplingFactor, ftype='fir')
 
-        return inputArrayRecordingDecimate
+        return inputArraySignalDecimate
 
-    # Split signal into frames (windowing), frameLength = 25 (25 ms), overlap = 0.5 (50%)
-    def segmentation(self, inputArrayRecording):
-        samplesFrame = round((self.frameLength*self.downsamplingFrequency)/1000)
-        samplesOverlap = round(samplesFrame*self.overlap)
+    # Split signal into frames/segments, frameLength = 25 (25 ms), overlap = 0.5 (50%)
+    # Return matrix of arrays - each column is a 25 ms segment
+    def segmentation(self, inputArraySignal):
+        samplesFrame = round((self.frameLength * self.downsamplingFrequency) / 1000)
+        samplesOverlap = round(samplesFrame * self.overlap)
         hamming = np.hamming(samplesFrame)
 
-        chunk = range(0, len(inputArrayRecording)-samplesOverlap, samplesOverlap)
+        chunk = range(0, len(inputArraySignal) - samplesOverlap, samplesOverlap)
 
         framesAmmount = 0
         for idx, k in enumerate(chunk):
-            if len(inputArrayRecording[k:k+samplesFrame]) == samplesFrame:
+            if len(inputArraySignal[k:k + samplesFrame]) == samplesFrame:
                 framesAmmount += 1
 
-        segmentArray = np.zeros(shape=(samplesFrame, framesAmmount))
+        matrixOfSegments = np.zeros(shape=(samplesFrame, framesAmmount))
 
         for idx, i in enumerate(chunk):
-            currentArray = inputArrayRecording[i:i+samplesFrame]
+            currentArray = inputArraySignal[i:i + samplesFrame]
             if len(currentArray) == samplesFrame:
-                segmentArray[:, idx] = hamming*currentArray
+                matrixOfSegments[:, idx] = hamming * currentArray
 
-        return segmentArray
+        return matrixOfSegments
 
     # Performs all required processing using methods in this class for input array of audio samples
     def process(self, inputArray):
@@ -91,8 +92,8 @@ class PreprocessUnit:
         data = self.normalize(data)
         data = self.preemphase(data)
         data = self.downsample(data)
-        matrixOfArrays = self.segmentation(data)
+        matrixOfSegments = self.segmentation(data)
 
-        return matrixOfArrays
+        return matrixOfSegments
 
-#EOF
+# EOF
