@@ -1,13 +1,13 @@
 from abc import ABC, abstractmethod
-from scipy.signal import hanning
 import numpy as np
+import itertools
 
 class FeatureExtractorInterface(ABC):
 
-    def __init__(self, soundWindowedFramesArray):
-        self.soundWindowedArray = soundWindowedFramesArray
-        self.frames_n = self.soundWindowedArray.shape[1]
-        self.frame_len = self.soundWindowedArray.shape[0]
+    def __init__(self, matrixOfSegments):
+        self.matrixOfSegments = matrixOfSegments
+        self.numberOfSegments = self.matrixOfSegments.shape[1]
+        self.lengthOfSegment = self.matrixOfSegments.shape[0]
 
     @abstractmethod
     def exctract(self):
@@ -16,91 +16,82 @@ class FeatureExtractorInterface(ABC):
 
 class MFCC(FeatureExtractorInterface):
 
-    def __init__(self, soundWindowedFramesArray, samplerate=44100, nceps=13, nfilt=26, nfft=512):
-        super(MFCC, self).__init__(soundWindowedFramesArray)
-        self.nceps = nceps
-        self.nfilt = nfilt
-        self.nfft = nfft
+    def __init__(self, matrixOfSegments, samplerate=44100, numberOfCepstras=13,
+                 numberOfMelFilters=26, numberOfFrequencyBins=512):
+        super(MFCC, self).__init__(matrixOfSegments)
         self.samplerate = samplerate
+        self.numberOfCepstras = numberOfCepstras
+        self.numberOfMelFilters = numberOfMelFilters
+        self.numberOfFrequencyBins = numberOfFrequencyBins
 
-    def _fft(self):
-        self.spectrumArray = np.zeros((self.nfft, self.frames_n))
-        for i in range(self.frames_n):
-            windowedFrame = self.soundWindowedArray[:, i]
-            if self.nfft > self.frame_len:
-                # padding-zero at the end of windowedFrame
-                windowedFrame = np.append(windowedFrame, np.zeros(self.nfft-self.frame_len))
-            for k in range(self.nfft):
-                self.spectrumArray[k, i] = (1/self.nfft)*np.abs(np.sum(windowedFrame*np.exp((-1j*2*np.pi*k*np.arange(self.nfft))/self.nfft)))**2
-        self.spectrumArray = self.spectrumArray[:self.nfft//2+1, :]
+    def fft(self):
+        self.spectrumArray = np.zeros((self.numberOfFrequencyBins, self.numberOfSegments))
+        alpha = 1/self.numberOfFrequencyBins
+        for i in range(self.numberOfSegments):
+            iSegment = self.matrixOfSegments[:, i]
+            # zero-padding
+            if self.numberOfFrequencyBins > self.lengthOfSegment:
+                iSegment = np.append(iSegment, np.zeros(self.numberOfFrequencyBins-self.lengthOfSegment))
+            for k in range(self.numberOfFrequencyBins):
+                fourierKernel = np.exp(
+                        (-1j*2*np.pi*k*np.arange(self.numberOfFrequencyBins))/self.numberOfFrequencyBins)
+                self.spectrumArray[k, i] = alpha*np.abs(np.sum(iSegment*fourierKernel))**2
+        self.spectrumArray = self.spectrumArray[:self.numberOfFrequencyBins//2+1, :]
 
-    def _freq2mel(self, freq):
+    def freq2mel(self, freq):
         return 1125*np.log(1 + freq/700)
 
-    def _mel2freq(self, mel):
+    def mel2freq(self, mel):
         return 700*(np.exp(mel/1125)-1)
 
-    def _freq2binfft(self, freq):
-        return np.floor((self.nfft+1)*freq/self.samplerate)
+    def freq2binfft(self, freq):
+        return np.floor((self.numberOfFrequencyBins+1)*freq/self.samplerate)
 
-    def _melfbank(self):
-        freq_low = 0  # lower frequency
-        freq_up = self.samplerate//2  # upper frequency
+    def melfbank(self):
 
-        mel_low = self._freq2mel(freq_low)
-        mel_up = self._freq2mel(freq_up)
-        # liner values in mel domain
-        melArray = np.linspace(mel_low, mel_up, self.nfilt+2)
-        # convert mel to Hz domain
-        freqArray = np.array([self._mel2freq(mel) for mel in melArray])
-        # convert Hz to fft bin
-        freqbinArray = np.array([self._freq2binfft(freq) for freq in freqArray])
+        lowFrequency = 0
+        highFrequency = self.samplerate//2
 
-        # calculate mel filterbank (każdy filtr ma po 257 wartości)
-        self.melbank = np.zeros((self.nfft//2+1, self.nfilt))
+        lowMelFreqency = self.freq2mel(lowFrequency)
+        highMelFrequency = self.freq2mel(highFrequency)
 
-        for m in range(1, self.nfilt+1):
-            fm_previous = freqbinArray[m-1]
-            fm = freqbinArray[m]
-            fm_next = freqbinArray[m+1]
+        melFrequencyArray = np.linspace(lowMelFreqency, highMelFrequency, self.numberOfMelFilters+2)
+        frequencyArray = np.array([self.mel2freq(mel) for mel in melFrequencyArray])
+        frequencyBinArray = np.array([self.freq2binfft(freq) for freq in frequencyArray])
+
+        # calculate mel filterbank
+        self.melbank = np.zeros((self.numberOfFrequencyBins//2+1, self.numberOfMelFilters))
+        for m in range(1, self.numberOfMelFilters+1):
+            previousFrequencyBin = frequencyBinArray[m-1]
+            currentFrequencyBin = frequencyBinArray[m]
+            nextFrequencyBin = frequencyBinArray[m+1]
 
             # left slope
-            for k in range(fm_previous, fm+1):
-                self.melbank[k, m] = (k-fm_previous)/(fm-fm_previous)
+            for k in range(previousFrequencyBin, currentFrequencyBin+1):
+                self.melbank[k, m] = (k-previousFrequencyBin)/(currentFrequencyBin-previousFrequencyBin)
             # right slope
-            for k in range(fm, fm_next+1):
-                self.melbank[k, m] = (fm_next-k)/(fm_next-fm)
+            for k in range(currentFrequencyBin, nextFrequencyBin+1):
+                self.melbank[k, m] = (nextFrequencyBin-k)/(nextFrequencyBin-currentFrequencyBin)
 
-    def _applymelfbank(self):
-        # for each frame we achieved 26 ceps
+    def applymelfbank(self):
+        # for each segment achieve numberOfCepstras cepstras
         self.filteredArray = np.dot(self.spectrumArray.T, self.melbank).T
 
-    def _logfbank(self):
+    def logfbank(self):
         self.logfilteredArray = np.log10(self.filteredArray)
 
-    def _dct(self):
-        self.mfcc_cepstras = np.zeros((self.nceps, self.frames_n))
-        for i in range(self.frames_n):
-            for j in range(self.nceps):
-                self.mfcc_cepstras[j, i] = np.sum(self.logfilteredArray[:, i]*np.cos(j*np.arange(0.5, self.nfilt+0.5)*np.pi/self.nfilt))
-
-    def deltas(self):
-        pass
-
-    def deltas_deltas(self):
-        pass
+    def dct(self):
+        self.mfccCepstras = np.zeros((self.numberOfCepstras, self.numberOfSegments))
+        for i, j in itertools.product(range(self.numberOfSegments), range(self.numberOfCepstras)):
+            self.mfccCepstras[j, i] = np.sum(
+                self.logfilteredArray[:, i]*np.cos(j*np.arange(0.5, self.numberOfMelFilters+0.5)*np.pi/self.numberOfMelFilters))
 
     def exctract(self):
-        # converting signal frames to frequency domain
-        self._fft()
-        # computing the Mel filterbank
-        self._melfbank()
-        # apply Mel filterbank to signal's spectrum
-        self._applymelfbank()
-        # logarithm
-        self._logfbank()
-        # decorelating filterbank coefs - caltulating mfcc cepstras
-        self._dct()
+        self.fft()
+        self.melfbank()
+        self.applymelfbank()
+        self.logfbank()
+        self.dct()
 
 
 class HFCC(FeatureExtractorInterface):
