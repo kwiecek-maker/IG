@@ -48,24 +48,19 @@ class MFCC(FeatureExtractorInterface):
         return np.floor((self.numberOfFrequencyBins+1)*freq/self.samplerate)
 
     def melfbank(self):
-
         lowFrequency = 0
         highFrequency = self.samplerate//2
-
         lowMelFreqency = self.freq2mel(lowFrequency)
         highMelFrequency = self.freq2mel(highFrequency)
-
         melFrequencyArray = np.linspace(lowMelFreqency, highMelFrequency, self.numberOfMelFilters+2)
         frequencyArray = np.array([self.mel2freq(mel) for mel in melFrequencyArray])
         frequencyBinArray = np.array([self.freq2binfft(freq) for freq in frequencyArray])
-
         # calculate mel filterbank
         self.melbank = np.zeros((self.numberOfFrequencyBins//2+1, self.numberOfMelFilters))
         for m in range(1, self.numberOfMelFilters+1):
             previousFrequencyBin = frequencyBinArray[m-1]
             currentFrequencyBin = frequencyBinArray[m]
             nextFrequencyBin = frequencyBinArray[m+1]
-
             # left slope
             for k in range(previousFrequencyBin, currentFrequencyBin+1):
                 self.melbank[k, m] = (k-previousFrequencyBin)/(currentFrequencyBin-previousFrequencyBin)
