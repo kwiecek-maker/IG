@@ -79,7 +79,8 @@ class MFCC(FeatureExtractorInterface):
         self.mfccFeaturesArray = np.zeros((self.numberOfCepstras, self.numberOfSegments))
         for i, j in itertools.product(range(self.numberOfSegments), range(self.numberOfCepstras)):
             self.mfccFeaturesArray[j, i] = np.sum(
-                self.logfilteredArray[:, i]*np.cos(j*np.arange(0.5, self.numberOfMelFilters+0.5)*np.pi/self.numberOfMelFilters))
+                self.logfilteredArray[:, i] *
+                np.cos(j*np.arange(0.5, self.numberOfMelFilters+0.5)*np.pi/self.numberOfMelFilters))
 
     def exctract(self):
         self.fft()
