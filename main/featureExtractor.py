@@ -69,7 +69,6 @@ class MFCC(FeatureExtractorInterface):
                 self.melbank[k, m] = (nextFrequencyBin-k)/(nextFrequencyBin-currentFrequencyBin)
 
     def applymelfbank(self):
-        # for each segment achieve numberOfCepstras cepstras
         self.filteredArray = np.dot(self.spectrumArray.T, self.melbank).T
 
     def logfbank(self):
