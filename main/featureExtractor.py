@@ -16,10 +16,8 @@ class FeatureExtractorInterface(ABC):
 
 
 class MFCC(FeatureExtractorInterface):
-
     def __init__(self, matrixOfSegments, samplerate=44100, numberOfCepstras=13,
                  numberOfMelFilters=26, numberOfFrequencyBins=512):
-
         super(MFCC, self).__init__(matrixOfSegments)
         self.samplerate = samplerate
         self.numberOfCepstras = numberOfCepstras
@@ -88,6 +86,7 @@ class MFCC(FeatureExtractorInterface):
 
     def dct(self):
         self.mfccFeaturesArray = np.zeros((self.numberOfCepstras, self.numberOfSegments))
+
         for i, j in itertools.product(range(self.numberOfSegments), range(self.numberOfCepstras)):
             self.mfccFeaturesArray[j, i] = np.sum(
                 self.logfilteredArray[:, i] *
@@ -99,6 +98,7 @@ class MFCC(FeatureExtractorInterface):
         self.applymelfbank()
         self.logfbank()
         self.dct()
+
         return self.mfccFeaturesArray
 
 
