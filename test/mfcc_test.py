@@ -18,8 +18,8 @@ mfccFeaturesRef = mfcc(audioData, samplerate=fs, winlen=segmentTime, winstep=seg
                        nfilt=26, nfft=1024, numcep=13, preemph=0, ceplifter=0)
 mfccFeaturesRef = mfccFeaturesRef.flatten('C')
 
-samplesPerSegment = int(0.02*fs)
-samplesOverlap = int(0.01*fs)
+samplesPerSegment = int(segmentTime*fs)
+samplesOverlap = int(segmentOverlap*fs)
 audioDataLen = len(audioData)
 numberOfSegments = int(audioDataLen/samplesOverlap)-1
 
