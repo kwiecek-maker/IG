@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 import itertools
 
+
 class FeatureExtractorInterface(ABC):
 
     def __init__(self, matrixOfSegments):
@@ -18,6 +19,7 @@ class MFCC(FeatureExtractorInterface):
 
     def __init__(self, matrixOfSegments, samplerate=44100, numberOfCepstras=13,
                  numberOfMelFilters=26, numberOfFrequencyBins=512):
+
         super(MFCC, self).__init__(matrixOfSegments)
         self.samplerate = samplerate
         self.numberOfCepstras = numberOfCepstras
@@ -27,15 +29,23 @@ class MFCC(FeatureExtractorInterface):
     def fft(self):
         self.spectrumArray = np.zeros((self.numberOfFrequencyBins, self.numberOfSegments))
         alpha = 1/self.numberOfFrequencyBins
+
+        # truncate segment
+        if self.numberOfFrequencyBins < self.lengthOfSegment:
+            self.lengthOfSegment = self.numberOfFrequencyBins
+
         for i in range(self.numberOfSegments):
-            iSegment = self.matrixOfSegments[:, i]
+            iSegment = self.matrixOfSegments[:self.lengthOfSegment, i]
+
             # zero-padding
             if self.numberOfFrequencyBins > self.lengthOfSegment:
                 iSegment = np.append(iSegment, np.zeros(self.numberOfFrequencyBins-self.lengthOfSegment))
+
             for k in range(self.numberOfFrequencyBins):
                 fourierKernel = np.exp(
                         (-1j*2*np.pi*k*np.arange(self.numberOfFrequencyBins))/self.numberOfFrequencyBins)
                 self.spectrumArray[k, i] = alpha*np.abs(np.sum(iSegment*fourierKernel))**2
+
         self.spectrumArray = self.spectrumArray[:self.numberOfFrequencyBins//2+1, :]
 
     def freq2mel(self, freq):
@@ -55,18 +65,20 @@ class MFCC(FeatureExtractorInterface):
         melFrequencyArray = np.linspace(lowMelFreqency, highMelFrequency, self.numberOfMelFilters+2)
         frequencyArray = np.array([self.mel2freq(mel) for mel in melFrequencyArray])
         frequencyBinArray = np.array([self.freq2binfft(freq) for freq in frequencyArray])
+
         # calculate mel filterbank
         self.melbank = np.zeros((self.numberOfFrequencyBins//2+1, self.numberOfMelFilters))
+
         for m in range(1, self.numberOfMelFilters+1):
             previousFrequencyBin = frequencyBinArray[m-1]
             currentFrequencyBin = frequencyBinArray[m]
             nextFrequencyBin = frequencyBinArray[m+1]
             # left slope
-            for k in range(previousFrequencyBin, currentFrequencyBin+1):
-                self.melbank[k, m] = (k-previousFrequencyBin)/(currentFrequencyBin-previousFrequencyBin)
+            for k in range(int(previousFrequencyBin), int(currentFrequencyBin)+1):
+                self.melbank[k, m-1] = (k-previousFrequencyBin)/(currentFrequencyBin-previousFrequencyBin)
             # right slope
-            for k in range(currentFrequencyBin, nextFrequencyBin+1):
-                self.melbank[k, m] = (nextFrequencyBin-k)/(nextFrequencyBin-currentFrequencyBin)
+            for k in range(int(currentFrequencyBin), int(nextFrequencyBin)+1):
+                self.melbank[k, m-1] = (nextFrequencyBin-k)/(nextFrequencyBin-currentFrequencyBin)
 
     def applymelfbank(self):
         self.filteredArray = np.dot(self.spectrumArray.T, self.melbank).T
