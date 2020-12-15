@@ -45,7 +45,9 @@ class PreprocessUnit:
 
     # Normalize given data to the self.desiredLoudnessLevel
     def normalize(self, inputArraySignal):
-        inputArraySignalNormalize = np.multiply(self.desiredLoudnessLevel, inputArraySignal)
+        # inputArraySignalNormalize = np.multiply(self.desiredLoudnessLevel, inputArraySignal)
+        # inputArraySignalNormalize = np.divide(inputArraySignal, np.sqrt(np.mean(inputArraySignal**2)))  # to rms
+        inputArraySignalNormalize = np.divide(inputArraySignal, np.max(inputArraySignal))  # to max value
 
         return inputArraySignalNormalize
 
@@ -57,8 +59,27 @@ class PreprocessUnit:
 
     # Downsample data to the self.downsamlingFrequency
     def downsample(self, inputArraySignal):
+        # downsamplingFactor = int(round(self.samplingFrequency / self.downsamplingFrequency))
+        # upsamplingFactor = int(downsamplingValue / self.samplingFrequency)
+        # inputArraySignalDecimate = signal.decimate(inputArraySignal, q=downsamplingFactor, ftype='fir')
+
+        # Without any build method
+        # Upsampling
         downsamplingFactor = int(round(self.samplingFrequency / self.downsamplingFrequency))
-        inputArraySignalDecimate = signal.decimate(inputArraySignal, q=downsamplingFactor, ftype='fir')
+        upsamplingFrequency = downsamplingFactor * self.downsamplingFrequency  # 6 * 8000 = 48 000
+        upsamplingValues = upsamplingFrequency - self.samplingFrequency  # 48 000 - 44 100 = 3 900
+        upsamplingZeroValues = [0] * int(upsamplingValues)
+        upsamplingIinputArraySignal = np.concatenate((inputArraySignal, upsamplingZeroValues), axis=None)
+
+        # Lowpass filtering
+        lp = signal.firwin(100, 8000, fs=upsamplingFrequency)
+        inputArraySignalFilter = signal.lfilter(lp, 1, upsamplingIinputArraySignal)
+
+        # Downsampling
+        inputArraySignalDecimate = []
+
+        for i in range(0, len(inputArraySignalFilter), downsamplingFactor):
+            inputArraySignalDecimate.append(inputArraySignalFilter[i])
 
         return inputArraySignalDecimate
 
