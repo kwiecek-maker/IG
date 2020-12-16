@@ -15,7 +15,7 @@ CommandManager = command.CommandManager()
 Gui = GUI.GUISmartHome()
 
 Manager = manager.Manager(FeatureExtractor, CommandManager, Gui) 
-logging.basicConfig(filename = 'logging.log', encoding = 'utf-8', level = logging.DEBUG)
+logging.basicConfig(filename = 'logging.log', level = logging.DEBUG)
 logging.info("Starting program")
 
 def acquiringDataThread():
@@ -51,10 +51,7 @@ def dataCalculationThread():
 def recordingThread():
   t = threading.current_thread()
   logging.info("Recording %s started", t.getName())
-  while True:
-    Manager.recordingLoop()
-    if (keyboard.is_pressed('q')):
-      break
+  Manager.recordingThread()
   logging.info("Recording %s finished", t.getName())
 
 def run():

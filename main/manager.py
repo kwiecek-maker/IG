@@ -6,7 +6,7 @@ import logging
 # Manages all object used in Program
 class Manager:
   def __init__(self, FeatureExtractor, CommandManager, GUISmartHome):
-    self.recorder = recorder.Recorder(thresholdLevel = 0.5)
+    self.recorder = recorder.Recorder(thresholdLevel = 0.1)
     self.preprocessUnit = preprocess.PreprocessUnit(desiredLoudnessLevel=1.0, downsamplingFrequency=8e3)
     self.featureExtractor = FeatureExtractor
     self.commandManager = CommandManager
@@ -23,9 +23,8 @@ class Manager:
       self.GUI.handle()
     self.GUI.checkEvents()
     
-  def recordingLoop(self):
-    if self.recorder.isAudioLevelAboveThreshold():
-      self.recorder.runAcquisition()
+  def recordingThread(self):
+    self.recorder.run()
 
   # Recognize recording and exchanges information between all objects  
   def dataCalculationLoop(self):

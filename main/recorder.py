@@ -1,26 +1,66 @@
+import keyboard
+import numpy as np
+import math
+import queue
+import sounddevice as sd
+import logging
+
 # Recorder is listening for commands, starts/stop aquairing them
- # and exports recorded data as numpy array
+# and exports recorded data as numpy array
 class Recorder:
 
   def __init__(self, thresholdLevel):
+    self.sampleRate = 44100
     self.threshold = thresholdLevel
-    self.acquiredRecordingQueue = None 
+    self.bufferSize = 256
+    self.channels = 1
+    self.bufferNumberLimitFromExceededThreshold = 40
+    self.bufferNumberFromExceededThreshold = 0
     
-  # check if given audio buffer exceeds threshold 
-  def isAudioLevelAboveThreshold(self):
-    pass
-  
-  # records current data into numpy array and put it into acquiredRecordingQueue
-  def runAcquisition(self):
-    pass
-  
-  # returns if acquiredRecordingQueue is not empty
-  def isDataAvailable(self):
-    pass
-  
-  # exports and delete acquiesced recording from acquiredRecording Queue,
-  # adds window to it and exports it as numpy array, 
-  def exportRecording(self):
-    pass
+    sd.default.samplerate = self.sampleRate
+    sd.default.channels = self.channels
+    
+    self.acquiredBuffersQueue = queue.Queue()
+    self.acquiredRecordingQueue = queue.Queue() 
 
-#EOF
+  def exportRecording(self):
+    try:
+      return self.acquiredRecordingQueue.get_nowait()
+    except queue.Empty:
+      return None
+  
+  def isDataAvailable(self):
+    return not self.acquiredRecordingQueue.empty()
+  
+  def run(self):
+    recordingStream = sd.InputStream(self.sampleRate, blocksize=self.bufferSize, dtype=('float32'))
+    recordingStream.start()
+    while True:
+      if keyboard.is_pressed('q'):
+        break
+      if recordingStream.read_available >= self.bufferSize:
+        buffer = recordingStream.read(self.bufferSize)[0].flatten()
+        self.processBuffer(buffer)
+    recordingStream.stop()
+  
+  def processBuffer(self, buffer):
+    if self.isBufferLevelAboveThreshold(buffer):
+      self.acquiredBuffersQueue.put(buffer)
+      self.bufferNumberFromExceededThreshold = 0
+    elif not self.acquiredBuffersQueue.empty() and self.bufferNumberFromExceededThreshold == self.bufferNumberLimitFromExceededThreshold:
+      data = np.array([])  
+      while not self.acquiredBuffersQueue.empty():
+        data = np.concatenate((data, self.acquiredBuffersQueue.get_nowait()))
+      self.acquiredRecordingQueue.put(data)
+      logging.info("Recording Acquired: length: " + str(float(len(data)) / self.sampleRate)[0:5] + "s")
+      self.bufferNumberFromExceededThreshold = 0
+    elif not self.acquiredBuffersQueue.empty():
+      self.acquiredBuffersQueue.put(buffer)
+      self.bufferNumberFromExceededThreshold += 1
+  
+  # check if given audio buffer exceeds RMS threshold 
+  def isBufferLevelAboveThreshold(self, buffer):
+    rmsValue = math.sqrt(np.sum(buffer * buffer) / self.bufferSize)
+    return rmsValue >= self.threshold
+
+  #EOF
