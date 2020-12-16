@@ -60,7 +60,7 @@ class Recorder:
   
   # check if given audio buffer exceeds RMS threshold 
   def isBufferLevelAboveThreshold(self, buffer):
-    rmsValue = math.sqrt(np.sum(buffer * buffer) / self.bufferSize)
+    rmsValue = math.sqrt(np.dot(buffer, buffer) / self.bufferSize)
     return rmsValue >= self.threshold
 
   #EOF
