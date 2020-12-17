@@ -7,15 +7,16 @@ from scipy.io import wavfile
 from python_speech_features import mfcc
 import numpy as np
 from matplotlib import pyplot as plt
-from main.featureExtractor import MFCC
+from repo.main.featureExtractor import MFCC
 
-fs, audioData = wavfile.read(r"test/wyłącz.wav")
+fs, audioData = wavfile.read(r"C:\Users\admin\Desktop\Studia II stopień\rok 2\semestr 1\IG\moje nagrania\Katarzyna "
+                             r"Więcek\1\stop.wav")
 
 segmentTime = 0.02
 segmentOverlap = 0.01
 
 mfccFeaturesRef = mfcc(audioData, samplerate=fs, winlen=segmentTime, winstep=segmentOverlap,
-                       nfilt=26, nfft=1024, numcep=13, preemph=0, ceplifter=0)
+                       nfilt=26, nfft=1024, numcep=13, preemph=0, ceplifter=0, appendEnergy=True)
 mfccFeaturesRef = mfccFeaturesRef.flatten('C')
 
 samplesPerSegment = int(segmentTime*fs)
@@ -25,13 +26,14 @@ numberOfSegments = int(audioDataLen/samplesOverlap)-1
 
 audioDataSegments = np.zeros((samplesPerSegment, numberOfSegments))
 for i in range(numberOfSegments):
-    audioDataSegments[:, i] += audioData[i*samplesOverlap: i*samplesOverlap+samplesPerSegment]
+    audioDataSegments[:, i] += (audioData[i * samplesOverlap: i * samplesOverlap + samplesPerSegment])
 
 obj = MFCC(audioDataSegments, samplerate=fs, numberOfCepstras=13, numberOfMelFilters=26,
            numberOfFrequencyBins=1024)
 mfccFeaturesTest = obj.exctract()
 mfccFeaturesTest = mfccFeaturesTest.flatten('F')
 
-plt.plot(mfccFeaturesRef)
-plt.plot(mfccFeaturesTest, c='red')
+plt.plot(mfccFeaturesRef, label='referencyjne współczynniki mel-cepstralne')
+plt.plot(mfccFeaturesTest, c='red', label='obliczone współczynniki mel-cepstralne')
+plt.legend()
 plt.show()
