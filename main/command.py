@@ -30,15 +30,16 @@ class CommandFactory:
     def readCommands(self):
         for (directoryPath, diretoryName, fileName) in os.walk(self.path):
             for file in fileName:
-                fileDecode = unidecode(file.lower())  # decode from the polish characters + change to the lower letters
-                fileWithoutExtension = os.path.splitext(fileDecode)[0]
+                if file.endswith('.wav'):
+                    fileDecode = unidecode(file.lower())  # decode from the polish characters + change to the lower letters
+                    fileWithoutExtension = os.path.splitext(fileDecode)[0]
 
-                for key in self.commandMap.keys():
-                    if fileWithoutExtension == key:
-                        self.commandMap[key].append(os.path.join(directoryPath, file))
-                        self.rmsFromFile(os.path.join(directoryPath, file))
-                    else:
-                        continue
+                    for key in self.commandMap.keys():
+                        if fileWithoutExtension == key:
+                            self.commandMap[key].append(os.path.join(directoryPath, file))
+                            self.rmsFromFile(os.path.join(directoryPath, file))
+                        else:
+                            continue
 
         self.rmsNormalizeValue = np.median(self.rmsList)
 
