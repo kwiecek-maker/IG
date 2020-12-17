@@ -42,7 +42,7 @@ def test_downsampling(inputData, downsampleData):
 
 if __name__ == "__main__":
 
-    path = ''
+    path = 'test/wylacz.wav'
     fs, data = wavfile.read(path)
 
     p = PreprocessUnit()
