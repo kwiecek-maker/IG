@@ -30,6 +30,7 @@ class Manager:
   # Recognize recording and exchanges information between all objects  
   def dataCalculationLoop(self):
     if self.recorder.isDataAvailable():
+
       data = self.recorder.exportRecording()
       data = self.preprocessUnit.process(data)
       data = self.featureExtractor.extract(data)
