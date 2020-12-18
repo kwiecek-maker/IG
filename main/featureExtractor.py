@@ -27,10 +27,18 @@ class MFCC(FeatureExtractorInterface):
 
         self.spectrumArray = np.zeros((self.numberOfFrequencyBins, self.numberOfSegments))
         self.melBank = np.zeros((self.numberOfFrequencyBins // 2 + 1, self.numberOfMelFilters))
+        self.melFilteredArray = np.zeros((self.numberOfMelFilters, self.numberOfSegments))
+        self.melLogFilteredArray = np.zeros((self.numberOfMelFilters, self.numberOfSegments))
         self.mfccFeaturesArray = np.zeros((self.numberOfCepstras, self.numberOfSegments))
 
     def fft(self):
         alpha = 1/self.numberOfFrequencyBins
+
+        # calculate transform kernel
+        fourier_kernel = np.zeros((self.numberOfFrequencyBins, self.numberOfFrequencyBins), dtype=np.complex128)
+        for k in range(self.numberOfFrequencyBins):
+            fourier_kernel[k, :] = np.exp(
+                (-1j * 2 * np.pi * k * np.arange(self.numberOfFrequencyBins)) / self.numberOfFrequencyBins)
 
         # truncate segment
         if self.numberOfFrequencyBins < self.lengthOfSegment:
@@ -44,9 +52,7 @@ class MFCC(FeatureExtractorInterface):
                 segment_i = np.append(segment_i, np.zeros(self.numberOfFrequencyBins-self.lengthOfSegment))
 
             for k in range(self.numberOfFrequencyBins):
-                fourier_kernel = np.exp(
-                        (-1j*2*np.pi*k*np.arange(self.numberOfFrequencyBins))/self.numberOfFrequencyBins)
-                self.spectrumArray[k, i] = alpha*np.abs(np.sum(segment_i*fourier_kernel))**2
+                self.spectrumArray[k, i] = alpha*np.abs(np.sum(segment_i*fourier_kernel[k, :]))**2
 
         self.spectrumArray = self.spectrumArray[:self.numberOfFrequencyBins//2+1, :]
 
@@ -83,15 +89,19 @@ class MFCC(FeatureExtractorInterface):
                 self.melBank[k, m-1] = (next_frequency_bin-k)/(next_frequency_bin-current_frequency_bin)
 
     def apply_mel_bank(self):
-        self.filteredArray = np.dot(self.spectrumArray.T, self.melBank).T
+        self.melFilteredArray = np.dot(self.spectrumArray.T, self.melBank).T
 
     def logfbank(self):
-        self.logfilteredArray = np.log(self.filteredArray)
+        self.melLogFilteredArray = np.log(self.melFilteredArray)
 
     def dct(self):
+        # calculate cosine transform kernel
+        dct_kernel = np.zeros((self.numberOfCepstras, self.numberOfMelFilters))
+        for j in range(self.numberOfCepstras):
+            dct_kernel[j, :] = np.cos(np.pi * j * np.arange(0.5, self.numberOfMelFilters+0.5)/self.numberOfMelFilters)
+
         for i, j in itertools.product(range(self.numberOfSegments), range(self.numberOfCepstras)):
-            self.mfccFeaturesArray[j, i] = 2*np.sum(self.logfilteredArray[:, i] *
-                            np.cos(np.pi * j * np.arange(0.5, self.numberOfMelFilters+0.5)/self.numberOfMelFilters))
+            self.mfccFeaturesArray[j, i] = 2*np.sum(self.melLogFilteredArray[:, i]*dct_kernel[j, :])
             # scaling factor
             if j == 0:
                 self.mfccFeaturesArray[j, i] *= np.sqrt(1/(4*self.numberOfMelFilters))
@@ -113,16 +123,4 @@ class MFCC(FeatureExtractorInterface):
             self.spectral_energy()
 
         return self.mfccFeaturesArray
-
-
-# class HFCC(FeatureExtractorInterface):
-#
-#     def extract(self, ):
-#         pass
-
 # EOF
-# def f0(self,):
-#   pass
-#
-# def formants(self,):
-#   pass
