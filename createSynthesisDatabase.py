@@ -11,7 +11,6 @@ currentDirectory = os.getcwd()
 data, samplerate = sf.read(currentDirectory + "\\testRecordings\\testRecording.wav")
 data = data[:, 0].flatten()
 
-
 predictorLength = 12
 blockSize = 640
 
