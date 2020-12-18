@@ -7,9 +7,9 @@ from scipy.io import wavfile
 from python_speech_features import mfcc
 import numpy as np
 from matplotlib import pyplot as plt
-from repo.main.featureExtractor import MFCC
+from main.featureExtractor import MFCC
 
-fs, audioData = wavfile.read(r"wyłącz.wav")
+fs, audioData = wavfile.read(r"test/wyłącz.wav")
 
 segmentTime = 0.02
 segmentOverlap = 0.01
