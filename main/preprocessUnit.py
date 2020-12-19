@@ -4,7 +4,7 @@ from scipy import signal
 
 
 class PreprocessUnit:
-    def __init__(self, desiredLoudnessLevel=None, downsamplingFrequency=8e3, samplingFrequency=44100, onset=0.01,
+    def __init__(self, desiredLoudnessLevel=0.5, downsamplingFrequency=8e3, samplingFrequency=44100, onset=0.01,
                  offset=0.01, coefficient=0.95, frameLength=25, overlap=0.5):
         self.desiredLoudnessLevel = desiredLoudnessLevel  # rms value, from read wave, calculate for them rms value (vector) and take one - median
         self.downsamplingFrequency = downsamplingFrequency
