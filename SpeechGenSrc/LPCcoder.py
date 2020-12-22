@@ -1,4 +1,5 @@
 import numpy as np
+import os
 
 class LPCcoder:
 
@@ -21,10 +22,10 @@ class LPCcoder:
 
         return [predictionCoefficientMemory, predictionError]
 
-    # Exports calculated LPC coefficients into txt files
-    def exportLPC(self, recordignName, predictionCoefficientMemory, predicionError)
+    # Exports calculated LPC coefficients into txt files in speechGenSrc/dataBase/
+    def exportLPC(self, recordingName, predictionCoefficientMemory, predicionError):
         with open(os.getcwd() + "\\SpeechGenSrc\\database\\" + recordingName + "predictionCoefficientMemory.txt", 'w+') as f:
             f.writelines("predictionCoefficientMemory")
 
         with open(os.getcwd() + "\\SpeechGenSrc\\database\\" + recordingName + "predictionError.txt", 'w+') as f:
-            f.writeliens("predictionError")
+            f.writelines("predictionError")
