@@ -11,10 +11,10 @@ import sys
 def transposeName(name):
     return ["", ""]
 
-# walks trhough directoires and dread files associated with 
+# walks through directories and read files associated with 
 # given filename. Returns None when files are not found.
 def readTxtfiles(filename):
-    return filename 
+    return None
 
 # decode txt files from database files
 class Decoder:
@@ -36,6 +36,7 @@ if __name__ == "__main__":
     LPCMatrix = readTxtfiles(LPCmatrixName)
     LPCError = readTxtfiles(LPCerrrorName)
 
-    decoder = Decoder(LPCMatrix, LPCError)
-    decoder.generateRecording()
-    decoder.playRecording()
+    if LPCMatrix is not None and LPCError is not None:
+        decoder = Decoder(LPCMatrix, LPCError)
+        decoder.generateRecording()
+        decoder.playRecording()

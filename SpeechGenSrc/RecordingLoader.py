@@ -19,7 +19,7 @@ class RecordingLoader:
     # of recording paths for future extraction
     def acquireRecordingMap(self):
         recordingName = "defaultName"
-        recordingPath = "defaultPAth"
+        recordingPath = "defaultPath"
         # Do the same for every found recording:
         self.recordingMap.update({recordingName : recordingPath})
         self.recordingNames.append(recordingName)
