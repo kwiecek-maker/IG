@@ -17,8 +17,13 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install libsndfile
+<<<<<<< HEAD
       run: | 
         sudo apt-get install libsndfile1 
+=======
+      run: |
+        sudo apt-get install libsndfile1
+>>>>>>> ZuzannaCommand
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
