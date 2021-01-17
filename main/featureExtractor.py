@@ -31,6 +31,12 @@ class MFCC(FeatureExtractorInterface):
         self.melLogFilteredArray = np.zeros((self.numberOfMelFilters, self.numberOfSegments))
         self.mfccFeaturesArray = np.zeros((self.numberOfCepstras, self.numberOfSegments))
 
+    def __repr__(self):
+        return "MatrixOfSegments shape: " + str(self.matrixOfSegments.shape) + ",\nsamplerate %d, number of cepstras %d,\nnumber of mel filters %d, number of Frequency bins %d, \nappend Energy %b" % (self.sampleRate, self.numberOfCepstras, self.numberOfMelFilters, self.numberOfFrequencyBins, self.appendFrameEnergy)
+
+    def __str__(self):
+        return self.__repr__
+
     def fft(self):
         alpha = 1/self.numberOfFrequencyBins
 
