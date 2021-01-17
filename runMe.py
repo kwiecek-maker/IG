@@ -3,18 +3,17 @@ import main.command as command
 import main.manager as manager
 import GUI.gui as GUI
 
-import threading 
+import threading
 import logging
 import keyboard
 
 # Clearing the logs
 open('logging.log', 'w').close()
 
-FeatureExtractor = extractor.MFCC()
 CommandManager = command.CommandManager()
 Gui = GUI.GUISmartHome()
 
-Manager = manager.Manager(FeatureExtractor, CommandManager, Gui) 
+Manager = manager.Manager( CommandManager, Gui)
 logging.basicConfig(filename = 'logging.log', level = logging.DEBUG)
 logging.info("Starting program")
 
@@ -58,7 +57,7 @@ def run():
   acquiringThread = threading.Thread(target=acquiringDataThread)
   acquiringThread.start()
   acquiringThread.join()
-  
+
   TrainingThread = threading.Thread(target=trainThread)
   TrainingThread.start()
   TrainingThread.join()
@@ -67,12 +66,12 @@ def run():
   threadList.append(threading.Thread(target=guiThread))
   threadList.append(threading.Thread(target=dataCalculationThread))
   threadList.append(threading.Thread(target=recordingThread))
-  
+
   for thread in threadList:
     thread.start()
 
   for thread in threadList:
     thread.join()
-    
+
 if __name__ == "__main__":
-  run(); 
+  run();
