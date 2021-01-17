@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import logging
+import queue
 
 class GuiInterface(ABC):
   @abstractmethod
@@ -9,10 +10,10 @@ class GuiInterface(ABC):
   def checkEvents(self):
     pass
 
-# Runs animation based on the given command 
+# Runs animation based on the given command
 class GUISmartHome(GuiInterface):
   def __init__(self):
-    self.GUIQueue = None
+    self.GUIQueue = queue.Queue()
 
   def handle(self, command):
     pass
@@ -22,5 +23,8 @@ class GUISmartHome(GuiInterface):
 
   def isCommandAvailable(self):
     pass
-  
+
+  def putIntoQueue(self, command):
+    self.GUIQueue.put(command)
+
   # TODO: establish all utilities that gui must do with team

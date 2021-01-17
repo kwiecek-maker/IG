@@ -17,6 +17,12 @@ class CommandFactory:
         self.rmsList = list()
         self.rmsNormalizeValue = 0
 
+    def __repr__(self):
+        outputString = ""
+        for command in self.commands:
+            outputString += str(command) +"\n"
+
+
     def rmsFromFile(self, filePath):
         data, samplerate = soundfile.read(filePath)
         data = data[:, 0].flatten()
@@ -43,6 +49,7 @@ class CommandFactory:
 
         self.rmsNormalizeValue = np.median(self.rmsList)
 
+
     def createCommand(self, name, dataList):
         return Command(copy(self.classificator), name, dataList)
 
@@ -54,11 +61,19 @@ class CommandFactory:
     def getRmsValue(self):
         return self.rmsNormalizeValue
 
-
 # Manages all commands created by Command factory
 class CommandManager:
     def __init__(self):
         self.commands = []
+
+    def __repr__(self):
+        output = "Comand Factory. Acquired commands: \n"
+        for command in self.commands:
+            output += str(command) +"\n"
+        return output
+
+    def __str__(self):
+        return self.__repr__()
 
     # Acquires commands from Comands factory by passing command
     # List from command factory
@@ -77,6 +92,12 @@ class Command:
         self.classificator = classificator
         self.commandName = commandName
         self.dataList = dataList
+
+    def __repr__(self):
+        return "Command %s" % (self.commandName)
+
+    def __str__(self):
+        return self.__repr__()
 
     def train(self, dataList):
         self.classificator.train(dataList)

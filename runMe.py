@@ -13,7 +13,7 @@ open('logging.log', 'w').close()
 CommandManager = command.CommandManager()
 Gui = GUI.GUISmartHome()
 
-Manager = manager.Manager( CommandManager, Gui)
+Manager = manager.Manager(CommandManager, Gui)
 logging.basicConfig(filename = 'logging.log', level = logging.DEBUG)
 logging.info("Starting program")
 
