@@ -3,19 +3,18 @@ import main.command as command
 import main.manager as manager
 import GUI.gui as GUI
 
-import threading 
+import threading
 import logging
 import keyboard
 
 # Clearing the logs
 open('logging.log', 'w').close()
 
-FeatureExtractor = extractor.MFCC()
 CommandManager = command.CommandManager()
 Gui = GUI.GUISmartHome()
 
-Manager = manager.Manager(FeatureExtractor, CommandManager, Gui) 
-logging.basicConfig(filename = 'logging.log', encoding = 'utf-8', level = logging.DEBUG)
+Manager = manager.Manager( CommandManager, Gui)
+logging.basicConfig(filename = 'logging.log', level = logging.DEBUG)
 logging.info("Starting program")
 
 def acquiringDataThread():
@@ -51,17 +50,14 @@ def dataCalculationThread():
 def recordingThread():
   t = threading.current_thread()
   logging.info("Recording %s started", t.getName())
-  while True:
-    Manager.recordingLoop()
-    if (keyboard.is_pressed('q')):
-      break
+  Manager.recordingThread()
   logging.info("Recording %s finished", t.getName())
 
 def run():
   acquiringThread = threading.Thread(target=acquiringDataThread)
   acquiringThread.start()
   acquiringThread.join()
-  
+
   TrainingThread = threading.Thread(target=trainThread)
   TrainingThread.start()
   TrainingThread.join()
@@ -70,12 +66,12 @@ def run():
   threadList.append(threading.Thread(target=guiThread))
   threadList.append(threading.Thread(target=dataCalculationThread))
   threadList.append(threading.Thread(target=recordingThread))
-  
+
   for thread in threadList:
     thread.start()
 
   for thread in threadList:
     thread.join()
-    
+
 if __name__ == "__main__":
-  run(); 
+  run();
