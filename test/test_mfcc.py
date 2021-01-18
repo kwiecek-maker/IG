@@ -8,7 +8,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from main.featureExtractor import MFCC
 
-fs, audioData = wavfile.read(r"test/wyłącz.wav")
+fs, audioData = wavfile.read(r"test/wylacz.wav")
 
 segmentTime = 0.02
 segmentOverlap = 0.01
