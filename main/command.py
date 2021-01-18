@@ -2,7 +2,10 @@ import os
 import logging
 import soundfile
 import numpy as np
+from main.preprocessUnit import PreprocessUnit
+from main.featureExtractor import MFCC
 from unidecode import unidecode
+import soundfile as sf
 from copy import copy
 
 
@@ -33,12 +36,12 @@ class CommandFactory:
 
     def rmsFromFile(self, filePath):
         data, samplerate = soundfile.read(filePath)
-        data = data[:, 0].flatten()
+        data = self.flattenData(data)
         rmsCurrent = np.sqrt(np.mean(data ** 2))
-
         self.rmsList.append(rmsCurrent)
 
-    # walks through files and categories and complete commandMap,
+
+    # Walks through files and categories and complete commandMap,
     # and if command exist already, path is appended to list assigned to command
     # Calculate for each file rms value and append it to
     # the list of rms values. Then take median of rms list,
@@ -56,23 +59,44 @@ class CommandFactory:
                     for key in self.commandMap.keys():
                         if fileWithoutExtension == key:
                             self.commandMap[key].append(os.path.join(directoryPath, file))
-                            self.rmsFromFile(os.path.join(directoryPath, file))
+                            path = os.getcwd() + "\\" + os.path.join(directoryPath, file)
+                            self.rmsFromFile(path)
                         else:
                             continue
 
         self.rmsNormalizeValue = np.median(self.rmsList)
-
 
     def createCommand(self, name, dataList):
         return Command(copy(self.classificator), name, dataList)
 
     # Returns List of all used commands in program
     def getCommandList(self):
-        return self.commands
+        preprocessUnit = PreprocessUnit(desiredLoudnessLevel=self.rmsNormalizeValue)
+        outputCommands = list()
+        for key in self.commandMap.keys():
+            commandData = []
+            for path in self.commandMap[key]:
+                data, samplerate = sf.read(path)
+                data = self.flattenData(data)
+                preprocessedData = preprocessUnit.process(data)
+                mfcc = MFCC(preprocessedData)
+                commandData.append(mfcc)
+            outputCommands.append(self.createCommand(key, commandData))
+            logging.info(" Command acquired: " + str(key) + " command")
+        return outputCommands
+
 
     # Returns rms value, which will be used in PreprocessUnit.normalize()
     def getRmsValue(self):
         return self.rmsNormalizeValue
+
+    @staticmethod
+    def flattenData(data):
+        if len(data.shape) == 2:
+            data = data[:, 0].flatten()
+        else:
+            data = data.flatten()
+        return data
 
 
 # Manages all commands created by Command factory
