@@ -15,14 +15,13 @@ class CommandFactory:
     def __init__(self, path, classificator):
         self.path = path
         self.classificator = classificator
-        self.commands = ['naprzod', 'odbierz', 'odrzuc', 'odslon', 'otworz', 'start', 'stop',
-                         'wlacz', 'wstecz', 'wylacz', 'zamknij', 'zaslon', 'zaswiec', 'zgas']
+        self.commandNames = []
 
         # map structure: {str(command) : [path1, path2, path3...]}
-        self.commandMap = dict((x, list()) for x in self.commands)
+        self.commandMap = dict((x, list()) for x in self.commandNames)
 
         self.rmsList = list()
-        self.rmsNormalizeValue = 0
+        self.rmsNormalizeTargetValue = 0
 
     def __repr__(self):
         outputString = "Command Factory, acquired commands: \n"
@@ -33,20 +32,21 @@ class CommandFactory:
     def __str__(self):
         return self.__repr__()
 
-
-    def rmsFromFile(self, filePath):
+    def acquireRMSValue(self, filePath):
         data, samplerate = soundfile.read(filePath)
         data = self.flattenData(data)
         rmsCurrent = np.sqrt(np.mean(data ** 2))
         self.rmsList.append(rmsCurrent)
 
+    def calculateGlobalRMSTarget(self):
+        for key in self.commandMap.keys():
+            for path in self.commandMap[key]:
+                self.acquireRMSValue(path)
+        self.rmsNormalizeTargetValue = np.median(self.rmsList)
+        logging.info(" Calculated Global RMS Target: %f" % (self.rmsNormalizeTargetValue))
 
-    # Walks through files and categories and complete commandMap,
-    # and if command exist already, path is appended to list assigned to command
-    # Calculate for each file rms value and append it to
-    # the list of rms values. Then take median of rms list,
-    # and return it (this value will be needed to
-    # normalize signal in PreprocessUnit.normalize())
+    # Walks through files and categories and complete associate
+    # recording .wav files with command by the name of the recording file
     def readCommands(self):
         for (directoryPath, diretoryName, fileName) in os.walk(self.path):
             for file in fileName:
@@ -56,22 +56,23 @@ class CommandFactory:
                     fileDecode = unidecode(file.lower())
                     fileWithoutExtension = os.path.splitext(fileDecode)[0]
 
-                    for key in self.commandMap.keys():
-                        if fileWithoutExtension == key:
-                            self.commandMap[key].append(os.path.join(directoryPath, file))
-                            path = os.getcwd() + "\\" + os.path.join(directoryPath, file)
-                            self.rmsFromFile(path)
-                        else:
-                            continue
-
-        self.rmsNormalizeValue = np.median(self.rmsList)
+                    path = os.getcwd() + "\\" + os.path.join(directoryPath, file)
+                    if fileWithoutExtension in self.commandMap.keys():
+                        for key in self.commandMap.keys():
+                            if fileWithoutExtension == key:
+                                self.commandMap[key].append(path)
+                            else:
+                                continue
+                    else:
+                        self.commandMap[fileWithoutExtension] = [path]
+                        self.commandNames.append(fileWithoutExtension)
 
     def createCommand(self, name, dataList):
         return Command(copy(self.classificator), name, dataList)
 
-    # Returns List of all used commands in program
+    # Returns List of all used commandNames in program
     def getCommandList(self):
-        preprocessUnit = PreprocessUnit(desiredLoudnessLevel=self.rmsNormalizeValue)
+        preprocessUnit = PreprocessUnit(desiredLoudnessLevel=self.rmsNormalizeTargetValue)
         outputCommands = list()
         for key in self.commandMap.keys():
             commandData = []
@@ -82,13 +83,13 @@ class CommandFactory:
                 mfcc = MFCC(preprocessedData)
                 commandData.append(mfcc)
             outputCommands.append(self.createCommand(key, commandData))
-            logging.info(" Command acquired: " + str(key) + " command")
+            logging.info(" Command acquired: \"" + str(key) + "\" command")
         return outputCommands
 
 
     # Returns rms value, which will be used in PreprocessUnit.normalize()
     def getRmsValue(self):
-        return self.rmsNormalizeValue
+        return self.rmsNormalizeTargetValue
 
     @staticmethod
     def flattenData(data):
@@ -102,11 +103,11 @@ class CommandFactory:
 # Manages all commands created by Command factory
 class CommandManager:
     def __init__(self):
-        self.commands = []
+        self.commandNames = []
 
     def __repr__(self):
         output = "Comand Factory. Acquired commands: \n"
-        for command in self.commands:
+        for command in self.commandNames:
             output += str(command) +"\n"
         return output
 
