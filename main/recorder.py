@@ -111,6 +111,15 @@ class FakeRecorder(RecorderInterface):
       else:
         path = random.choice(self.recordingPaths)
         data, samplerate = sf.read(path)
+        data = self.flattenData(data)
         self.acquiredRecordingQueue.put(data)
       time.sleep(self.recordingProducingPeriod)
+
+  @staticmethod
+  def flattenData(data):
+        if len(data.shape) >= 2:
+            data = data[:, 0].flatten()
+        else:
+            data = data.flatten()
+        return data
   #EOF

@@ -8,7 +8,6 @@ from unidecode import unidecode
 import soundfile as sf
 from copy import copy
 
-
 # Creates commands from the recording files. Associate
 # command type, by name of the recording files
 class CommandFactory:
@@ -103,7 +102,7 @@ class CommandFactory:
 # Manages all commands created by Command factory
 class CommandManager:
     def __init__(self):
-        self.commandNames = []
+        self.commands = []
 
     def __repr__(self):
         output = "Comand Factory. Acquired commands: \n"
@@ -122,14 +121,27 @@ class CommandManager:
     # Iterates over all self.commands, invoking likelyhood.
     # Finds command with the biggest likelyhood and returns it
     def recognize(self, extractedData):
-        logging.warning("no implemented yet!")
+        likelyhood, index = 0, 0
+        for commandIndex in range(len(self.commands)):
+            tempLikelyhood = self.commands[commandIndex].likelyhood(extractedData)
+            if  tempLikelyhood > likelyhood:
+                likelyhood = tempLikelyhood
+                index = commandIndex
+        logging.info(" Recognized: \"%s\", with likelyhood: %f" % (self.commands[index].name, likelyhood))
+        return self.commands[index].name
+
+    def train(self):
+        for command in self.commands:
+            logging.info(" Training of \"" + str(command.name) + "\" command started!")
+            command.train()
+            logging.info(" Training of \"" + str(command.name) + "\" command ended!")
 
 
 # Mediator of the classificator
 class Command:
-    def __init__(self, classificator, commandName, dataList):
+    def __init__(self, classificator, name, dataList):
         self.classificator = classificator
-        self.commandName = commandName
+        self.name = name
         self.dataList = dataList
 
     def __repr__(self):
@@ -138,8 +150,8 @@ class Command:
     def __str__(self):
         return self.__repr__()
 
-    def train(self, dataList):
-        self.classificator.train(dataList)
+    def train(self):
+        self.classificator.train(self.dataList)
 
     def likelyhood(self, extractedFeatures):
         return self.classificator.likelyhood(extractedFeatures)

@@ -48,15 +48,10 @@ class FakeClassificator(ClassificatorInterface):
     self.trained = False
 
   def likelyhood(self, extractedFeatures):
-    if extractedFeatures.size > 0:
-      return random.uniform(1, 1000)
-    return 0
+    return random.uniform(1, 1000)
 
   def train(self, extractedFeatures):
-    if extractedFeatures.size > 0:
-      self.trained = True
-      return True
-    return False
+    return True
 
 
-# EOF
+# EQ

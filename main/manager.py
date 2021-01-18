@@ -43,7 +43,6 @@ class Manager:
       self.GUI.putIntoQueue(command)
 
   def trainThread(self):
-    for _ in range(10):
-      logging.info("training...")
+    self.commandManager.train()
 
 #EOF
