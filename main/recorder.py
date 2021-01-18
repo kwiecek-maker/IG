@@ -11,9 +11,9 @@ import time
 from abc import ABC, abstractclassmethod
 
 
-class RecorderInterface(abc.ABC):
+class RecorderInterface(ABC):
   @abstractclassmethod
-  def isDataAvailabe(self):
+  def isDataAvailable(self):
     return False
 
   @abstractclassmethod
@@ -95,7 +95,7 @@ class FakeRecorder(RecorderInterface):
       for path in files:
         self.recordingPaths.append(os.path.join(root, path))
 
-  def isDataAvailabe(self):
+  def isDataAvailable(self):
     return not self.acquiredRecordingQueue.empty()
 
   def exportRecording(self):

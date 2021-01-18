@@ -49,7 +49,7 @@ class FakeClassificator(ClassificatorInterface):
 
   def likelyhood(self, extractedFeatures):
     if extractedFeatures.size > 0:
-      return 1
+      return random.uniform(1, 1000)
     return 0
 
   def train(self, extractedFeatures):
