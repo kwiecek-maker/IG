@@ -6,21 +6,29 @@ from unidecode import unidecode
 from copy import copy
 
 
-# Creates commands from the recording files. Associate command type, by name of the recording files
+# Creates commands from the recording files. Associate
+# command type, by name of the recording files
 class CommandFactory:
     def __init__(self, path, classificator):
         self.path = path
         self.classificator = classificator
         self.commands = ['naprzod', 'odbierz', 'odrzuc', 'odslon', 'otworz', 'start', 'stop',
                          'wlacz', 'wstecz', 'wylacz', 'zamknij', 'zaslon', 'zaswiec', 'zgas']
-        self.commandMap = dict((x, list()) for x in self.commands)  # map structure: {str(command) : [path1, path2, path3...]}
+
+        # map structure: {str(command) : [path1, path2, path3...]}
+        self.commandMap = dict((x, list()) for x in self.commands)
+
         self.rmsList = list()
         self.rmsNormalizeValue = 0
 
     def __repr__(self):
-        outputString = ""
+        outputString = "Command Factory, acquired commands: \n"
         for command in self.commands:
             outputString += str(command) +"\n"
+        return outputString
+
+    def __str__(self):
+        return self.__repr__()
 
 
     def rmsFromFile(self, filePath):
@@ -30,14 +38,19 @@ class CommandFactory:
 
         self.rmsList.append(rmsCurrent)
 
-    # walks through files and categories and complete commandMap, and if command exist already, path is appended to list assigned to command
-    # Clculate for each file rms value and append it to the list of rms values. Then take median of rms list,
-    # and return it (this value will be needed to normalize signal in PreprocessUnit.normalize())
+    # walks through files and categories and complete commandMap,
+    # and if command exist already, path is appended to list assigned to command
+    # Calculate for each file rms value and append it to
+    # the list of rms values. Then take median of rms list,
+    # and return it (this value will be needed to
+    # normalize signal in PreprocessUnit.normalize())
     def readCommands(self):
         for (directoryPath, diretoryName, fileName) in os.walk(self.path):
             for file in fileName:
                 if file.endswith('.wav'):
-                    fileDecode = unidecode(file.lower())  # decode from the polish characters + change to the lower letters
+
+                    # decode from the polish characters + change to the lower letters
+                    fileDecode = unidecode(file.lower())
                     fileWithoutExtension = os.path.splitext(fileDecode)[0]
 
                     for key in self.commandMap.keys():
@@ -60,6 +73,7 @@ class CommandFactory:
     # Returns rms value, which will be used in PreprocessUnit.normalize()
     def getRmsValue(self):
         return self.rmsNormalizeValue
+
 
 # Manages all commands created by Command factory
 class CommandManager:

@@ -12,8 +12,10 @@ class Manager:
     self.GUI = GUISmartHome
 
   def acquiringDataThread(self):
-    for _ in range(10):
-      logging.info("acquiring data")
+    commandFactory = main.command.CommandFactory('database')
+    commandFactory.readCommands()
+    self.commandManager.acquireCommands(commandFactory.getCommandList)
+
 
   # Runs gui commands if any are acquired in self.GUIQueue
   # check windows gui events

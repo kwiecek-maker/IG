@@ -1,7 +1,8 @@
 from abc import ABC, abstractclassmethod
+import random
 
-# classificator creates function, that approximates 
-# histogram made out of training data. 
+# classificator creates function, that approximates
+# histogram made out of training data.
 class ClassificatorInterface(ABC):
   # Returns likely hood how well function
   # inside classificator approximates histogram of given data
@@ -16,7 +17,7 @@ class ClassificatorInterface(ABC):
 
 # GMM creates gaussian mixture that approximates given data
 # |nComponents| - The number of mixture components.
-# |tolerance| - The convergence threshold. EM iterations will stop when the 
+# |tolerance| - The convergence threshold. EM iterations will stop when the
 # lower bound average gain is below this threshold.
 # |maxIteration| - The number of EM iterations to perform.
 class GMM(ClassificatorInterface):
@@ -24,21 +25,38 @@ class GMM(ClassificatorInterface):
     self.nComponents = nComponents
     self.tolerance = tolerance
     self.maxIterations = maxIterations
-  
+
   def likelyhood(self, extractedFeatures):
     pass
 
   def train(self, extractedFeaturesList):
-    pass 
-  
+    pass
+
 # class DTW(ClassificatorInterface):
 #   def __init__(self, extractedFeatures):
 #     pass
-  
+
 #   def likelyhood(self, extractedFeatures):
 #     pass
 
 #   def train(self, extractedFeaturesList):
-#     pass 
+#     pass
+
+# This classificator is used for testing program only
+class FakeClassificator(ClassificatorInterface):
+  def __init__(self):
+    self.trained = False
+
+  def likelyhood(self, extractedFeatures):
+    if extractedFeatures.size > 0:
+      return 1
+    return 0
+
+  def train(self, extractedFeatures):
+    if extractedFeatures.size > 0:
+      self.trained = True
+      return True
+    return False
+
 
 # EOF
