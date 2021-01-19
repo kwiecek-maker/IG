@@ -12,7 +12,7 @@ open('logging.log', 'w').close()
 logging.basicConfig(filename = 'logging.log', level = logging.DEBUG)
 logging.info(" Starting MFCC TEST")
 
-audioData, fs = sf.read(r"\database\Aleksandra Rogowiec\1\naprzod.wav")
+audioData, fs = sf.read(r"database\Aleksandra Rogowiec\1\naprzod.wav")
 
 segmentTime = 0.030
 
