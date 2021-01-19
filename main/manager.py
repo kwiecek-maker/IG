@@ -38,7 +38,7 @@ class Manager:
       data = self.recorder.exportRecording()
       data = self.preprocessUnit.process(data)
       data = extractor.MFCC(data)
-      command = self.commandManager.recognize(data)
+      command = self.commandManager.recognize(data.extract().T)
       self.GUI.putIntoQueue(command)
 
   def trainThread(self):

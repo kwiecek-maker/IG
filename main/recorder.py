@@ -112,6 +112,7 @@ class FakeRecorder(RecorderInterface):
         path = random.choice(self.recordingPaths)
         data, samplerate = sf.read(path)
         data = self.flattenData(data)
+        logging.info(" Generated audio: %s," % path)
         self.acquiredRecordingQueue.put(data)
       time.sleep(self.recordingProducingPeriod)
 

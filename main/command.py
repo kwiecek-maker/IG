@@ -73,7 +73,7 @@ class CommandFactory:
     def getCommandList(self, preprocessUnit):
         outputCommands = list()
         for key in self.commandMap.keys():
-            commandData = []
+            commandData = None
             # for path in self.commandMap[key]:
             for path in self.commandMap[key][0:2]: #! This is for speed upgrade
                 data, samplerate = sf.read(path)
@@ -86,8 +86,11 @@ class CommandFactory:
                 mfcc = MFCC(preprocessedData, samplerate=downsamplingFrequency, numberOfCepstras=13, numberOfMelFilters=26, numberOfFrequencyBins=1024)
                 mfcc = mfcc.extract()
 
-                commandData.append(mfcc.T)
-            outputCommands.append(self.createCommand(key, commandData))
+                if commandData is None:
+                    commandData = mfcc
+                else:
+                    commandData = np.concatenate((commandData, mfcc), axis=1)
+            outputCommands.append(self.createCommand(key, commandData.T))
             logging.info(" Command acquired: \"" + str(key) + "\" command")
         return outputCommands
 

@@ -13,7 +13,7 @@ open('logging.log', 'w').close()
 
 CommandManager = command.CommandManager()
 Gui = GUI.GUISmartHome()
-classificator = classificators.GMM(nComponents=6, max_iter=100)
+classificator = classificators.GMM(nComponents=2, max_iter=3)
 
 Manager = manager.Manager(classificator ,CommandManager, Gui)
 logging.basicConfig(filename = 'logging.log', level = logging.DEBUG)

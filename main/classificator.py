@@ -2,6 +2,7 @@ from abc import ABC, abstractclassmethod
 import random
 import numpy as np
 import logging
+import pandas as pd
 
 # classificator creates function, that approximates
 # histogram made out of training data.
@@ -90,16 +91,19 @@ class GMM(ClassificatorInterface):
       self.pi = [N[k]/len(X) for k in range(self.n_componets)]
 
   def likelyhood(self, extractedFeatures):
-    # '''
-    #     The predicting function
-    #         :param X: 2-d array numpy array
-    #             The data on which we must predict the clusters
-    # # '''
-
-    likelyhood = [self.multivariate_normal(extractedFeatures, self.mean_vector[k], self.covariance_matrixes[k])
-              for k in range(self.n_componets)]
-
-    return likelyhood
+        '''
+            The predicting function
+                :param X: 2-d array numpy array
+                    The data on which we must predict the clusters
+        '''
+        probas = []
+        for n in range(len(extractedFeatures)):
+            probas.append([self.multivariate_normal(extractedFeatures[n], self.mean_vector[k], self.covariance_matrixes[k])
+                           for k in range(self.n_componets)])
+        cluster = []
+        for proba in probas:
+            cluster.append(self.comp_names[proba.index(max(proba))])
+        return np.max(cluster)
 
 class DTW(ClassificatorInterface):
   def __init__(self):
