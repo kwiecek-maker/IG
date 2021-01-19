@@ -6,14 +6,14 @@ import logging
 
 class PreprocessUnit:
     def __init__(self, desiredLoudnessLevel=0.5, downsamplingFrequency=8e3, samplingFrequency=44100, onset=0.01,
-                 offset=0.01, coefficient=0.95, frameLength=25, overlap=0.5):
+                 offset=0.01, coefficient=0.95, segmentTime=0.025, overlap=0.5):
         self.desiredLoudnessLevel = desiredLoudnessLevel  # rms value, from read wave, calculate for them rms value (vector) and take one - median
         self.downsamplingFrequency = downsamplingFrequency
         self.samplingFrequency = samplingFrequency
         self.onset = onset
         self.offset = offset
         self.coefficient = coefficient
-        self.frameLength = frameLength
+        self.segmentTime = segmentTime
         self.overlap = overlap
 
     # Multiplying beginning and end of the audio data with cos ramp
@@ -83,10 +83,10 @@ class PreprocessUnit:
 
         return inputArraySignalDecimate
 
-    # Split signal into frames/segments, frameLength = 25 (25 ms), overlap = 0.5 (50%)
+    # Split signal into frames/segments, segmentTime = 0.025 s, overlap = 0.5 (50%)
     # Return matrix of arrays - each column is a 25 ms segment
     def segmentation(self, inputArraySignal):
-        samplesFrame = round((self.frameLength * self.downsamplingFrequency) / 1000)
+        samplesFrame = round((self.segmentTime * self.downsamplingFrequency))
         samplesOverlap = round(samplesFrame * self.overlap)
         hamming = np.hamming(samplesFrame)
 
@@ -116,5 +116,4 @@ class PreprocessUnit:
         matrixOfSegments = self.segmentation(data)
 
         return matrixOfSegments
-
 # EOF

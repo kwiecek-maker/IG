@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import numpy as np
 import itertools
+import sys
 
 
 class FeatureExtractorInterface(ABC):
@@ -11,7 +12,7 @@ class FeatureExtractorInterface(ABC):
         self.lengthOfSegment = self.matrixOfSegments.shape[0]
 
     @abstractmethod
-    def exctract(self):
+    def extract(self):
         return
 
 
@@ -35,7 +36,7 @@ class MFCC(FeatureExtractorInterface):
         return "MatrixOfSegments shape: " + str(self.matrixOfSegments.shape) + ",\nsamplerate %d, number of cepstras %d,\nnumber of mel filters %d, number of Frequency bins %d, \nappend Energy %b" % (self.sampleRate, self.numberOfCepstras, self.numberOfMelFilters, self.numberOfFrequencyBins, self.appendFrameEnergy)
 
     def __str__(self):
-        return self.__repr__
+        return self.__repr__()
 
     def fft(self):
         alpha = 1/self.numberOfFrequencyBins
@@ -58,7 +59,7 @@ class MFCC(FeatureExtractorInterface):
                 segment_i = np.append(segment_i, np.zeros(self.numberOfFrequencyBins-self.lengthOfSegment))
 
             for k in range(self.numberOfFrequencyBins):
-                self.spectrumArray[k, i] = alpha*np.abs(np.sum(segment_i*fourier_kernel[k, :]))**2
+                self.spectrumArray[k, i] = alpha * np.abs(np.sum(segment_i * fourier_kernel[k, :]))**2
 
         self.spectrumArray = self.spectrumArray[:self.numberOfFrequencyBins//2+1, :]
 
@@ -96,6 +97,7 @@ class MFCC(FeatureExtractorInterface):
 
     def apply_mel_bank(self):
         self.melFilteredArray = np.dot(self.spectrumArray.T, self.melBank).T
+        # print(self.melLogFilteredArray.shape)
 
     def logfbank(self):
         self.melLogFilteredArray = np.log(self.melFilteredArray)
@@ -119,7 +121,7 @@ class MFCC(FeatureExtractorInterface):
         for frame in range(self.numberOfSegments):
             self.mfccFeaturesArray[0, frame] = np.log(np.sum(np.abs(self.spectrumArray[:, frame])))
 
-    def exctract(self):
+    def extract(self):
         self.fft()
         self.mel_bank()
         self.apply_mel_bank()

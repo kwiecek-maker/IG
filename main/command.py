@@ -70,17 +70,23 @@ class CommandFactory:
         return Command(copy(self.classificator), name, dataList)
 
     # Returns List of all used commandNames in program
-    def getCommandList(self):
-        preprocessUnit = PreprocessUnit(desiredLoudnessLevel=self.rmsNormalizeTargetValue)
+    def getCommandList(self, preprocessUnit):
         outputCommands = list()
         for key in self.commandMap.keys():
             commandData = []
-            for path in self.commandMap[key]:
+            # for path in self.commandMap[key]:
+            for path in self.commandMap[key][0:2]: #! This is for speed upgrade
                 data, samplerate = sf.read(path)
                 data = self.flattenData(data)
+
+                preprocessUnit.samplingFrequency = samplerate
                 preprocessedData = preprocessUnit.process(data)
-                mfcc = MFCC(preprocessedData)
-                commandData.append(mfcc)
+                downsamplingFrequency = preprocessUnit.downsamplingFrequency
+
+                mfcc = MFCC(preprocessedData, samplerate=downsamplingFrequency, numberOfCepstras=13, numberOfMelFilters=26, numberOfFrequencyBins=1024)
+                mfcc = mfcc.extract()
+
+                commandData.append(mfcc.T)
             outputCommands.append(self.createCommand(key, commandData))
             logging.info(" Command acquired: \"" + str(key) + "\" command")
         return outputCommands
@@ -133,8 +139,10 @@ class CommandManager:
     def train(self):
         for command in self.commands:
             logging.info(" Training of \"" + str(command.name) + "\" command started!")
+            print(" Training of \"" + str(command.name) + "\" command started!")
             command.train()
             logging.info(" Training of \"" + str(command.name) + "\" command ended!")
+            print(" Training of \"" + str(command.name) + "\" command ended!")
 
 
 # Mediator of the classificator
