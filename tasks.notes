@@ -1,0 +1,6 @@
+[ ] Find out why there are nan and inf values in mfcc
+[ ] change kernel of the gaussian mixture to fit our needs
+[ ] if it doents work out -> implement dtw speech
+[ ] easy gui with pyqt5
+
+
