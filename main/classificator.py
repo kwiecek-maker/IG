@@ -10,7 +10,7 @@ class ClassificatorInterface(ABC):
   # Returns likely hood how well function
   # inside classificator approximates histogram of given data
   @abstractclassmethod
-  def likelyhood(self, extractedFeatures):
+  def likelihood(self, extractedFeatures):
     pass
 
   # creates function that approximates histogram of given data List
@@ -31,20 +31,28 @@ class GMM(ClassificatorInterface):
     self.max_iterations = max_iterations
     self.eps = eps
 
-  def likelyhood(self, extractedMfcc: np.array):
-    probabilityError = 1e-9
-    prob, edgeValues = np.histogram(extractedMfcc, bins='sqrt', density=True)
+  def likelihood(self, extractedMfcc: np.array):
+    minData = np.min(extractedMfcc)
+    maxData = np.max(extractedMfcc)
+    maxPSD = self.getMaxProbabilityFromPDF(minData, maxData)
+
+    probabilities, edgeValues = np.histogram(extractedMfcc, bins='sqrt', density=True)
+    maxProbability = np.max(probabilities)
+    normalizationFactor = maxProbability / maxPSD
+
+    likelihood = list()
     values = self._getMiddleValues(edgeValues)
     for index in range(len(values)):
-      probabilityError += abs(prob[index] - self.getProbabilityAtValue(values[index]))
-    similarity = probabilityError ** -1
-    return 20*np.log10(similarity)
+      likelihood.append((abs(probabilities[index] - normalizationFactor * self.getProbabilityAtValue(values[index])))**-1)
+    likelihood = np.array(likelihood)
+
+    return 20*np.log10(np.mean(likelihood))
 
   def train(self, extractedMfccList):
 
     X = np.array([])
     for mfccArray in extractedMfccList:
-      X = np.append(X, mfccArray) # normalizing mfcc
+      X = np.append(X, mfccArray)
 
     np.random.shuffle(X)
     self.weights = np.ones((self.n_components)) / self.n_components
@@ -86,6 +94,13 @@ class GMM(ClassificatorInterface):
       probability += self.pdf(value, self.means[n], self.variances[n])
     return probability
 
+  def getMaxProbabilityFromPDF(self, minValue: float, maxValue: float):
+    t = np.arange(minValue, maxValue, self.eps * 1e5)
+    y = []
+    for time in t:
+      y.append(self.getProbabilityAtValue(time))
+    return np.max(y)
+
   @staticmethod
   def _getMiddleValues(inputArray):
     output = [None] * (len(inputArray)-1)
@@ -93,14 +108,12 @@ class GMM(ClassificatorInterface):
       output[index] = (inputArray[index] + inputArray[index+1]) / 2
     return output
 
-
-
 class DTW(ClassificatorInterface):
   def __init__(self):
     self.acquiredMFCC = np.array([])
     self.referenceMFCCMatrix = np.array([])
 
-  def likelyhood(self, extractedFeatures):
+  def likelihood(self, extractedFeatures):
     return 1
 
   def train(self, extractedFeaturesList):
@@ -112,7 +125,7 @@ class FakeClassificator(ClassificatorInterface):
   def __init__(self):
     self.trained = False
 
-  def likelyhood(self, extractedFeatures):
+  def likelihood(self, extractedFeatures):
     return 20*np.log10(random.uniform(1, 1000))
 
   def train(self, X):

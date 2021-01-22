@@ -126,16 +126,16 @@ class CommandManager:
     def acquireCommands(self, commandList):
         self.commands = commandList
 
-    # Iterates over all self.commands, invoking likelyhood.
-    # Finds command with the biggest likelyhood and returns it
+    # Iterates over all self.commands, invoking likelihood.
+    # Finds command with the biggest likelihood and returns it
     def recognize(self, extractedData):
-        likelyhood, index = 0, 0
+        likelihood, index = 0, 0
         for commandIndex in range(len(self.commands)):
-            tempLikelyhood = self.commands[commandIndex].likelyhood(extractedData)
-            if  tempLikelyhood > likelyhood:
-                likelyhood = tempLikelyhood
+            templikelihood = self.commands[commandIndex].likelihood(extractedData)
+            if  templikelihood > likelihood:
+                likelihood = templikelihood
                 index = commandIndex
-        logging.info(" Recognized: \"%s\", with likelyhood: %f" % (self.commands[index].name, likelyhood))
+        logging.info(" Recognized: \"%s\", with likelihood: %f" % (self.commands[index].name, likelihood))
         return self.commands[index].name
 
     def train(self):
@@ -163,7 +163,7 @@ class Command:
     def train(self):
         self.classificator.train(self.dataList)
 
-    def likelyhood(self, extractedFeatures):
-        return self.classificator.likelyhood(extractedFeatures)
+    def likelihood(self, extractedFeatures):
+        return self.classificator.likelihood(extractedFeatures)
 
 # EOF
