@@ -4,12 +4,13 @@ import main.featureExtractor as extractor
 import main.command as command
 from main.classificator import FakeClassificator
 import logging
+import time
 
 # Manages all object used in Program
 class Manager:
   def __init__(self,classificator, CommandManager, GUISmartHome):
     # self.recorder = recorder.Recorder(thresholdLevel=0.2)
-    self.recorder = recorder.FakeRecorder('database', recordingAcquisitionFrequency=0.5)
+    self.recorder = recorder.FakeRecorder('database', recordingAcquisitionFrequency=0.05)
     self.preprocessUnit = preprocess.PreprocessUnit(desiredLoudnessLevel=0.8, downsamplingFrequency=8e3)
     self.commandManager = CommandManager
     self.classificator = classificator
@@ -27,6 +28,7 @@ class Manager:
     if self.GUI.isCommandAvailable():
       self.GUI.handle()
     self.GUI.checkEvents()
+    time.sleep(0.3)
 
   def recordingThread(self):
     self.recorder.run()
@@ -38,7 +40,7 @@ class Manager:
       data = self.recorder.exportRecording()
       data = self.preprocessUnit.process(data)
       data = extractor.MFCC(data)
-      command = self.commandManager.recognize(data.extract().T)
+      command = self.commandManager.recognize(data.extract())
       self.GUI.putIntoQueue(command)
 
   def trainThread(self):

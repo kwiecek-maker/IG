@@ -18,92 +18,82 @@ class ClassificatorInterface(ABC):
   def train(self, X):
     pass
 
-# GMM creates gaussian mixture that approximates given data
-# |nComponents| - The number of clusters in which the algorithm
-#                 must split the data set
-# |max_iter| - The number of iteration that the algorithm will
-#              go throw to find the clusters lower bound average
-#              gain is below this threshold.
-# |comp_names| -  In case it is setted as a list of string it will use to
-#              name the clusters
+
+# Gaussian Mixture Model
+# |n_components| [int] - number of gauss kernels used to estimate
+# histogram of the trained data.
+# |max_iterations| [int] - number of iterations to perform
+# |eps| [float] - what error of estimation should be acceptable
 class GMM(ClassificatorInterface):
-  def __init__(self, nComponents, max_iter = 100, maxIterations=100, comp_names=None):
-    self.n_componets = nComponents
-    self.max_iter = max_iter
-    if comp_names == None:
-        self.comp_names = [f"comp{index}" for index in range(self.n_componets)]
-    else:
-        self.comp_names = comp_names
-    # pi list contains the fraction of the dataset for every cluster
-    self.pi = [1/self.n_componets for comp in range(self.n_componets)]
 
-  # Multivariate normal derivation formula,
-  # the normal distribution for vectors it requires the following parameters
+  def __init__(self, n_components, max_iterations, eps=1e-8):
+    self.n_components = n_components
+    self.max_iterations = max_iterations
+    self.eps = eps
 
-  # |X| 1-d numpy array - The row-vector for which we want
-  # to calculate the distribution
+  def likelyhood(self, extractedMfcc: np.array):
+    probabilityError = 1e-9
+    prob, edgeValues = np.histogram(extractedMfcc, bins='sqrt', density=True)
+    values = self._getMiddleValues(edgeValues)
+    for index in range(len(values)):
+      probabilityError += abs(prob[index] - self.getProbabilityAtValue(values[index]))
+    similarity = probabilityError ** -1
+    return 20*np.log10(similarity)
 
-  # |mean_vector| 1-d numpy array - The row-vector that contains
-  # the means for each column
+  def train(self, extractedMfccList):
 
-  # |covariance_matrix| 2-d numpy array (matrix) - The 2-d matrix that
-  # contain the covariances for the features
-  def multivariate_normal(self, X, mean_vector, covariance_matrix):
-    return (2 * np.pi) ** (
-      -len(X) / 2) * np.linalg.det(
-        covariance_matrix) ** (-1 / 2) * np.exp(
-          - np.dot( np.dot( ( X - mean_vector).T,
-                           np.linalg.inv(covariance_matrix)),
-                   (X-mean_vector))/2)
+    X = np.array([])
+    for mfccArray in extractedMfccList:
+      X = np.append(X, mfccArray) # normalizing mfcc
 
-  def train(self, X):
-    '''
-        The function for training the model
-            :param X: 2-d numpy array
-                The data must be passed to the algorithm as 2-d array,
-                where columns are the features and the rows are the samples
-    '''
-    new_X = np.array_split(X, self.n_componets)
-    self.mean_vector = [np.mean(x, axis=0) for x in new_X]
-    self.covariance_matrixes = [np.cov(x.T) for x in new_X]
-    del new_X
+    np.random.shuffle(X)
+    self.weights = np.ones((self.n_components)) / self.n_components
+    self.means = np.random.choice(X, self.n_components)
+    self.variances = np.random.random_sample(size=self.n_components)
 
-    for iteration in range(self.max_iter):
-      self.r = np.zeros((len(X), self.n_componets))
-      for n in range(len(X)):
-          for k in range(self.n_componets):
-              self.r[n][k] = self.pi[k] * self.multivariate_normal(X[n], self.mean_vector[k], self.covariance_matrixes[k])
-              self.r[n][k] /= sum([self.pi[j]*self.multivariate_normal(X[n], self.mean_vector[j], self.covariance_matrixes[j]) for j in range(self.n_componets)])
+    for iteration in range(self.max_iterations):
 
-      N = np.sum(self.r, axis=0)
-      self.mean_vector = np.zeros((self.n_componets, len(X[0])))
+      likelihood = list()
+      for n in range(self.n_components):
+        likelihood.append(self.pdf(X, self.means[n], np.sqrt(self.variances[n])))
+      likelihood = np.array(likelihood)
 
-      for k in range(self.n_componets):
-          for n in range(len(X)):
-              self.mean_vector[k] += self.r[n][k] * X[n]
+      b = []
+      # Maximization step
+      for n in range(self.n_components):
+        b.append((likelihood[n] * self.weights[n]) / (
+          np.sum([likelihood[i] * self.weights[i]
+                  for i in range(self.n_components)], axis=0) + self.eps))
 
-      self.mean_vector = [1/N[k]*self.mean_vector[k] for k in range(self.n_componets)]
-      self.covariance_matrixes = [np.zeros((len(X[0]), len(X[0]))) for k in range(self.n_componets)]
+        # Update mean and variance
+        self.means[n] = np.sum(b[n] * X) / (np.sum(b[n] + self.eps))
+        self.variances[n] = np.sum(b[n] * np.square(X - self.means[n])) / (np.sum(b[n] + self.eps))
 
-      for k in range(self.n_componets):
-          self.covariance_matrixes[k] = np.cov(X.T, aweights=(self.r[:, k]), ddof=0)
-      self.covariance_matrixes = [1/N[k]*self.covariance_matrixes[k] for k in range(self.n_componets)]
-      self.pi = [N[k]/len(X) for k in range(self.n_componets)]
+        # Update the weights
+        self.weights[n] = np.mean(b[n])
 
-  def likelyhood(self, extractedFeatures):
-        '''
-            The predicting function
-                :param X: 2-d array numpy array
-                    The data on which we must predict the clusters
-        '''
-        probas = []
-        for n in range(len(extractedFeatures)):
-            probas.append([self.multivariate_normal(extractedFeatures[n], self.mean_vector[k], self.covariance_matrixes[k])
-                           for k in range(self.n_componets)])
-        cluster = []
-        for proba in probas:
-            cluster.append(self.comp_names[proba.index(max(proba))])
-        return np.max(cluster)
+    return True
+
+  def pdf(self, data, mean: float, variance: float):
+    # A normal continuous random variable.
+    s1 = 1/(np.sqrt(2*np.pi*variance))
+    s2 = np.exp(-(np.square(data - mean)/(2*variance)))
+    return s1 * s2
+
+  def getProbabilityAtValue(self, value: float):
+    probability = 0
+    for n in range(self.n_components):
+      probability += self.pdf(value, self.means[n], self.variances[n])
+    return probability
+
+  @staticmethod
+  def _getMiddleValues(inputArray):
+    output = [None] * (len(inputArray)-1)
+    for index in range(len(inputArray)-1):
+      output[index] = (inputArray[index] + inputArray[index+1]) / 2
+    return output
+
+
 
 class DTW(ClassificatorInterface):
   def __init__(self):
@@ -123,7 +113,7 @@ class FakeClassificator(ClassificatorInterface):
     self.trained = False
 
   def likelyhood(self, extractedFeatures):
-    return random.uniform(1, 1000)
+    return 20*np.log10(random.uniform(1, 1000))
 
   def train(self, X):
     return True

@@ -59,15 +59,10 @@ class PreprocessUnit:
 
     # Downsample data to the self.downsamlingFrequency
     def downsample(self, inputArraySignal):
-        # downsamplingFactor = int(round(self.samplingFrequency / self.downsamplingFrequency))
-        # upsamplingFactor = int(downsamplingValue / self.samplingFrequency)
-        # inputArraySignalDecimate = signal.decimate(inputArraySignal, q=downsamplingFactor, ftype='fir')
 
-        # Without any build method
-        # Upsampling
         downsamplingFactor = int(round(self.samplingFrequency / self.downsamplingFrequency))
-        upsamplingFrequency = downsamplingFactor * self.downsamplingFrequency  # 6 * 8000 = 48 000
-        upsamplingValues = upsamplingFrequency - self.samplingFrequency  # 48 000 - 44 100 = 3 900
+        upsamplingFrequency = downsamplingFactor * self.downsamplingFrequency
+        upsamplingValues = upsamplingFrequency - self.samplingFrequency
         upsamplingZeroValues = [0] * int(upsamplingValues)
         upsamplingIinputArraySignal = np.concatenate((inputArraySignal, upsamplingZeroValues), axis=None)
 
@@ -82,6 +77,24 @@ class PreprocessUnit:
             inputArraySignalDecimate.append(inputArraySignalFilter[i])
 
         return inputArraySignalDecimate
+
+    def deleteZerosAtBeginningAndEnd(self, inputData):
+        countBeginning = 0
+        for sample in range(len(inputData)):
+            if inputData[sample] == 0:
+                countBeginning += 1
+            else:
+                break
+
+        countEnding = 0
+        for sample in reversed(range(len(inputData))):
+            if inputData[sample] == 0:
+                countEnding += 1
+            else:
+                break
+        return inputData[countBeginning:-countEnding]
+
+
 
     # Split signal into frames/segments, segmentTime = 0.025 s, overlap = 0.5 (50%)
     # Return matrix of arrays - each column is a 25 ms segment
@@ -113,6 +126,7 @@ class PreprocessUnit:
         data = self.normalize(data)
         data = self.preemphase(data)
         data = self.downsample(data)
+        data = self.deleteZerosAtBeginningAndEnd(data)
         matrixOfSegments = self.segmentation(data)
 
         return matrixOfSegments
