@@ -1,6 +1,7 @@
 [√] Find out why there are nan and inf values in mfcc
-[x] change kernel of the gaussian mixture to fit our needs
-[ ] if it doents work out -> implement dtw speech
+[√] change kernel of the gaussian mixture to fit our needs
+[√] if it doents work out -> implement dtw speech
+[ ] likelihood implementation
 [ ] easy gui with pyqt5
 
 
