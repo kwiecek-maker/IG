@@ -137,7 +137,7 @@ class CommandFactory(CommandFactoryInterface):
                 preprocessedData = preprocessUnit.process(data)
                 downsamplingFrequency = preprocessUnit.downsamplingFrequency
 
-                mfcc = MFCC(preprocessedData, samplerate=downsamplingFrequency, numberOfCepstras=13, numberOfMelFilters=26, numberOfFrequencyBins=1024)
+                mfcc = MFCC(preprocessedData, samplerate=downsamplingFrequency, numberOfCepstras=112, numberOfMelFilters=224, numberOfFrequencyBins=2048)
                 mfccData = mfcc.extract()
 
                 commandData.append(mfccData.flatten('F'))
@@ -176,9 +176,10 @@ class CommandManagerInterface():
 
 # Manages all commands created by Command factory
 class CommandManager(CommandManagerInterface):
-    def __init__(self, saveTrainedDataToCSV=True):
+    def __init__(self, saveTrainedDataToCSV=True, trainingDataDestinationPath=None):
         self.commands = []
         self.saveTrainedDataToCSV = saveTrainedDataToCSV
+        self.trainingDataDestinationPath = trainingDataDestinationPath
 
     def __repr__(self):
         output = "Comand Factory. Acquired commands: \n"
@@ -208,7 +209,7 @@ class CommandManager(CommandManagerInterface):
 
     def train(self):
         if self.saveTrainedDataToCSV: # Clear Training data
-            open(os.getcwd() + r"\trainningData\smartHomeCommands.txt", 'w').close()
+            open(self.trainingDataDestinationPath, 'w').close()
 
         for command in self.commands:
 
@@ -227,7 +228,7 @@ class CommandManager(CommandManagerInterface):
                 if DEBUG:
                     print(message)
 
-                with open(os.getcwd() + r"\trainningData\smartHomeCommands.txt", 'a') as f:
+                with open(self.trainingDataDestinationPath, 'a') as f:
                     f.write(command.name + "\t" + str(command.classificator) + "\n")
 
             else:

@@ -2,6 +2,7 @@ import main.featureExtractor as extractor
 import main.command as command
 import main.manager as manager
 import main.classificator as classificators
+import main.preprocessUnit as preprocess
 import GUI.gui as GUI
 
 import threading
@@ -16,12 +17,21 @@ DEBUG = True
 open('logging.log', 'w').close()
 
 Gui = GUI.GUISmartHome()
-classificator = classificators.GMM(n_components=12, max_iterations=2000)
-CommandManager = command.CommandManager(saveTrainedDataToCSV=False)
-trainedDataPath = os.getcwd() + r"\trainningData\smartHomeCommands.txt"
-CommandFactory = command.CommandReadingFactorGMM(classificator, trainedDataPath)
+classificator = classificators.GMM(n_components=30, max_iterations=2000)
+# numberOfCepstras=112, numberOfMelFilters=224, numberOfFrequencyBins=2048
+trainedDataPath = os.getcwd() + r"\trainningData\commands52Cepstras_112MelFIlters_2048FFT_30components_2000_iterations.txt"
 
-Manager = manager.Manager(classificator ,CommandManager, CommandFactory, Gui)
+training = True
+
+CommandManager = command.CommandManager(saveTrainedDataToCSV=training, trainingDataDestinationPath=trainedDataPath)
+CommandFactory = None
+if training:
+  CommandFactory = command.CommandFactory('database', classificator) #! getting train data
+else:
+  CommandFactory = command.CommandReadingFactorGMM(classificator, trainedDataPath)
+
+preprocessUnit = preprocess.PreprocessUnit(desiredLoudnessLevel=0.8, downsamplingFrequency=10e3)
+Manager = manager.Manager(classificator ,CommandManager, CommandFactory, preprocessUnit, Gui)
 logging.basicConfig(filename = 'logging.log', level = logging.DEBUG)
 logging.info(" Starting program")
 
