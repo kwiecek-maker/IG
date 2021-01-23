@@ -31,22 +31,23 @@ class GMM(ClassificatorInterface):
     self.max_iterations = max_iterations
     self.eps = eps
 
+  def __str__(self):
+    return self.__repr__() + "\t" + self._arrayToStr(self.means) + "\t" + self._arrayToStr(self.variances) + "\t" + self._arrayToStr(self.weights)
+
+  def __repr__(self):
+    return "GMMClassificator"
+
   def likelihood(self, extractedMfcc: np.array):
-    minData = np.min(extractedMfcc)
-    maxData = np.max(extractedMfcc)
-    maxPSD = self.getMaxProbabilityFromPDF(minData, maxData)
-
-    probabilities, edgeValues = np.histogram(extractedMfcc, bins='sqrt', density=True)
-    maxProbability = np.max(probabilities)
-    normalizationFactor = maxProbability / maxPSD
-
-    likelihood = list()
-    values = self._getMiddleValues(edgeValues)
-    for index in range(len(values)):
-      likelihood.append((abs(probabilities[index] - normalizationFactor * self.getProbabilityAtValue(values[index])))**-1)
+    likelihood = []
+    for n in range(self.n_components):
+      likelihood.append(self.pdf(extractedMfcc, self.means[n], np.sqrt(self.variances[n])))
     likelihood = np.array(likelihood)
 
-    return 20*np.log10(np.mean(likelihood))
+    max_likelihoods = np.zeros(likelihood.shape[1])
+    for sample in range(likelihood.shape[1]):
+      max_likelihoods[sample] = np.max(likelihood[:, sample])
+
+    return np.max(max_likelihoods) - np.mean(max_likelihoods)
 
   def train(self, extractedMfccList):
 
@@ -106,6 +107,14 @@ class GMM(ClassificatorInterface):
     output = [None] * (len(inputArray)-1)
     for index in range(len(inputArray)-1):
       output[index] = (inputArray[index] + inputArray[index+1]) / 2
+    return output
+
+  @staticmethod
+  def _arrayToStr(array):
+    output = "["
+    for value in array:
+      output += str(value) + ", "
+    output = output[:-2] + ']'
     return output
 
 class DTW(ClassificatorInterface):

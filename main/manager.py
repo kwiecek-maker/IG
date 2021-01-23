@@ -8,19 +8,18 @@ import time
 
 # Manages all object used in Program
 class Manager:
-  def __init__(self,classificator, CommandManager, GUISmartHome):
+  def __init__(self,classificator, CommandManager, CommandFactory, GUISmartHome):
     # self.recorder = recorder.Recorder(thresholdLevel=0.2)
     self.recorder = recorder.FakeRecorder('database', recordingAcquisitionFrequency=0.05)
     self.preprocessUnit = preprocess.PreprocessUnit(desiredLoudnessLevel=0.8, downsamplingFrequency=8e3)
     self.commandManager = CommandManager
+    self.commandFactory = CommandFactory
     self.classificator = classificator
     self.GUI = GUISmartHome
 
   def acquiringDataThread(self):
-    commandFactory = command.CommandFactory('database', self.classificator)
-    commandFactory.readCommands()
-    commandFactory.calculateGlobalRMSTarget()
-    self.commandManager.acquireCommands(commandFactory.getCommandList(self.preprocessUnit))
+    self.commandFactory.readCommands()
+    self.commandManager.acquireCommands(self.commandFactory.getCommandList(self.preprocessUnit))
 
   # Runs gui commands if any are acquired in self.GUIQueue
   # check windows gui events
@@ -39,7 +38,7 @@ class Manager:
 
       data = self.recorder.exportRecording()
       data = self.preprocessUnit.process(data)
-      data = extractor.MFCC(data)
+      data = extractor.MFCC(data,  samplerate=self.preprocessUnit.downsamplingFrequency, numberOfCepstras=13, numberOfMelFilters=26, numberOfFrequencyBins=512)
       command = self.commandManager.recognize(data.extract())
       self.GUI.putIntoQueue(command)
 

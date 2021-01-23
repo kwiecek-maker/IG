@@ -18,8 +18,8 @@ class FeatureExtractorInterface(ABC):
 
 
 class MFCC(FeatureExtractorInterface):
-    def __init__(self, matrixOfSegments, samplerate=44100, numberOfCepstras=13,
-                 numberOfMelFilters=26, numberOfFrequencyBins=512, appendFrameEnergy=True):
+    def __init__(self, matrixOfSegments, samplerate=int(8e3), numberOfCepstras=13,
+                 numberOfMelFilters=26, numberOfFrequencyBins=1024, appendFrameEnergy=True):
         super(MFCC, self).__init__(matrixOfSegments)
         self.sampleRate = samplerate
         self.numberOfCepstras = numberOfCepstras

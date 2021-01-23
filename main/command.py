@@ -3,16 +3,70 @@ import logging
 import soundfile
 import numpy as np
 from main.preprocessUnit import PreprocessUnit
+from abc import ABC, abstractclassmethod
 from main.featureExtractor import MFCC
+from main.classificator import GMM
 from unidecode import unidecode
 import soundfile as sf
 from copy import copy
 
+global DEBUG
+DEBUG = True
+
+class CommandFactoryInterface(ABC):
+    @abstractclassmethod
+    def getCommandList(self):
+        pass
+
+    @abstractclassmethod
+    def createCommand(self):
+        pass
+
+    @abstractclassmethod
+    def readCommands(self):
+        pass
+
+class CommandReadingFactorGMM(CommandFactoryInterface):
+    def __init__(self, classificator, trainingDataPath):
+        self.classificator = classificator
+        self.path = trainingDataPath
+        self.commands = list()
+
+    def readCommands(self):
+        with open(self.path, 'r') as f:
+            lines = f.readlines()
+            for line in lines:
+                data = line[:-2].split('\t')
+
+                name = data[0]
+                command = self.createCommand(name)
+
+                means = self._arrayFromStr(data[2])
+                variances = self._arrayFromStr(data[3])
+                weights = self._arrayFromStr(data[4])
+                command.acquireClassificatorParameters(means, variances, weights)
+                command.trained = True
+                self.commands.append(command)
+
+    def createCommand(self, name):
+        return Command(copy(self.classificator), name, list())
+
+    def getCommandList(self, preprocessingUnit):
+        return self.commands
+
+    @staticmethod
+    def _arrayFromStr(arrayStr):
+        # getting rid of '[' and ']
+        arrayStr = arrayStr[1:-1]
+
+        array = arrayStr.split(',')
+        return np.array([float(i) for i in array])
+
 # Creates commands from the recording files. Associate
 # command type, by name of the recording files
-class CommandFactory:
-    def __init__(self, path, classificator):
-        self.path = path
+class CommandFactory(CommandFactoryInterface):
+    def __init__(self, databasePath, classificator):
+        self.path = databasePath
         self.classificator = classificator
         self.commandNames = []
 
@@ -90,7 +144,8 @@ class CommandFactory:
             outputCommands.append(self.createCommand(key, commandData))
             message = " Command acquired: \"" + str(key) + "\" command"
             logging.info(message)
-            print(message)
+            if DEBUG:
+                print(message)
         return outputCommands
 
 
@@ -106,11 +161,24 @@ class CommandFactory:
             data = data.flatten()
         return data
 
+class CommandManagerInterface():
+    @abstractclassmethod
+    def acquireCommands(self, commandList):
+        pass
+
+    @abstractclassmethod
+    def recognize(self, extractedData):
+        pass
+
+    @abstractclassmethod
+    def train(self):
+        pass
 
 # Manages all commands created by Command factory
-class CommandManager:
-    def __init__(self):
+class CommandManager(CommandManagerInterface):
+    def __init__(self, saveTrainedDataToCSV=True):
         self.commands = []
+        self.saveTrainedDataToCSV = saveTrainedDataToCSV
 
     def __repr__(self):
         output = "Comand Factory. Acquired commands: \n"
@@ -131,7 +199,7 @@ class CommandManager:
     def recognize(self, extractedData):
         likelihood, index = 0, 0
         for commandIndex in range(len(self.commands)):
-            templikelihood = self.commands[commandIndex].likelihood(extractedData)
+            templikelihood = self.commands[commandIndex].likelihood(extractedData.flatten('F'))
             if  templikelihood > likelihood:
                 likelihood = templikelihood
                 index = commandIndex
@@ -139,20 +207,41 @@ class CommandManager:
         return self.commands[index].name
 
     def train(self):
+        if self.saveTrainedDataToCSV: # Clear Training data
+            open(os.getcwd() + r"\trainningData\smartHomeCommands.txt", 'w').close()
+
         for command in self.commands:
-            logging.info(" Training of \"" + str(command.name) + "\" command started!")
-            print(" Training of \"" + str(command.name) + "\" command started!")
-            command.train()
-            logging.info(" Training of \"" + str(command.name) + "\" command ended!")
-            print(" Training of \"" + str(command.name) + "\" command ended!")
+
+            if command.trained is False:
+                message = " Training of \"" + str(command.name) + "\" command started!"
+                logging.info(message)
+
+                if DEBUG:
+                    print(message)
+
+                command.train()
+
+                message = " Training of \"" + str(command.name) + "\" command ended!"
+                logging.info(message)
+
+                if DEBUG:
+                    print(message)
+
+                with open(os.getcwd() + r"\trainningData\smartHomeCommands.txt", 'a') as f:
+                    f.write(command.name + "\t" + str(command.classificator) + "\n")
+
+            else:
+                message = " Command: \"" + str(command.name) + "\" already trained"
+                logging.info(message)
 
 
 # Mediator of the classificator
 class Command:
-    def __init__(self, classificator, name, dataList):
+    def __init__(self, classificator, name, dataList, trained=False):
         self.classificator = classificator
         self.name = name
         self.dataList = dataList
+        self.trained = trained
 
     def __repr__(self):
         return "Command %s" % (self.commandName)
@@ -165,5 +254,14 @@ class Command:
 
     def likelihood(self, extractedFeatures):
         return self.classificator.likelihood(extractedFeatures)
+
+    def acquireClassificatorParameters(self, means, variances, weights):
+
+        if len(means) != len(variances) or len(variances) != len(weights):
+            raise AttributeError("length of each parameters must be equal")
+
+        self.classificator.means = means
+        self.classificator.variances = variances
+        self.classificator.weights = weights
 
 # EOF

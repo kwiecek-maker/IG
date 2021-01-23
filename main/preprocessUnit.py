@@ -116,6 +116,7 @@ class PreprocessUnit:
             currentArray = inputArraySignal[i:i + samplesFrame]
             if len(currentArray) == samplesFrame:
                 matrixOfSegments[:, idx] = hamming * currentArray
+                # matrixOfSegments[:, idx] = currentArray
 
         return matrixOfSegments
 

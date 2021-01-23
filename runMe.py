@@ -7,15 +7,21 @@ import GUI.gui as GUI
 import threading
 import logging
 import keyboard
+import os
+
+global DEBUG
+DEBUG = True
 
 # Clearing the logs
 open('logging.log', 'w').close()
 
-CommandManager = command.CommandManager()
 Gui = GUI.GUISmartHome()
-classificator = classificators.GMM(n_components=6, max_iterations=200)
+classificator = classificators.GMM(n_components=12, max_iterations=2000)
+CommandManager = command.CommandManager(saveTrainedDataToCSV=False)
+trainedDataPath = os.getcwd() + r"\trainningData\smartHomeCommands.txt"
+CommandFactory = command.CommandReadingFactorGMM(classificator, trainedDataPath)
 
-Manager = manager.Manager(classificator ,CommandManager, Gui)
+Manager = manager.Manager(classificator ,CommandManager, CommandFactory, Gui)
 logging.basicConfig(filename = 'logging.log', level = logging.DEBUG)
 logging.info(" Starting program")
 
