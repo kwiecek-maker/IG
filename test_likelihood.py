@@ -23,8 +23,6 @@ import numpy as np
 # preprocessUnit = PreprocessUnit(desiredLoudnessLevel=0.8, downsamplingFrequency=8e3)
 # commandManager.acquireCommands(commandFactory.getCommandList(preprocessUnit))
 
-
-
 # plt.figure(figsize=(10, 10))
 
 # t = np.arange(-30, 30, 1e-3)
@@ -57,7 +55,6 @@ import numpy as np
 # output = np.concatenate((mfccList[0], mfccList[1]), axis=1)
 # print(output.shape)
 
-u
 assert True == True
 
 
@@ -67,17 +64,4 @@ assert True == True
 # mfcc2 = MFCC(audio2PreProcessed)
 # exportedFeatures2 = mfcc2.extract()
 
-
 # assert "odbierz" == output2
-
-
-
-
-
-
-
-
-
-
-
-
