@@ -1,18 +1,18 @@
-from main.preprocessUnit import PreprocessUnit
-from main.classificator import GMM
-from main.command import CommandReadingFactorGMM
-from main.command import Command
-from main.command import CommandManager
-from main.command import CommandFactory
-from main.featureExtractor import MFCC
-from main.manager import Manager
-from main.recorder import FakeRecorder
-import GUI.gui as GUI
+# from main.preprocessUnit import PreprocessUnit
+# from main.classificator import GMM
+# from main.command import CommandReadingFactorGMM
+# from main.command import Command
+# from main.command import CommandManager
+# from main.command import CommandFactory
+# from main.featureExtractor import MFCC
+# from main.manager import Manager
+# from main.recorder import FakeRecorder
+# import GUI.gui as GUI
 
-import soundfile as sf
-import os
-import matplotlib.pyplot as plt
-import numpy as np
+# import soundfile as sf
+# import os
+# import matplotlib.pyplot as plt
+# import numpy as np
 
 # trainingDataPath = os.getcwd() + r"\trainningData\commands_12_Cepstras_24_MelFIlters_512_FFT_4_components_100_iterations.txt"
 

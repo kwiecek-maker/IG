@@ -2,7 +2,6 @@ import keyboard
 import numpy as np
 import math
 import queue
-import sounddevice as sd
 import logging
 import os
 import random
