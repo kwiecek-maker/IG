@@ -3,6 +3,7 @@ import random
 import numpy as np
 import logging
 import pandas as pd
+from sklearn.mixture import GaussianMixture
 
 # classificator creates function, that approximates
 # histogram made out of training data.
@@ -139,6 +140,27 @@ class FakeClassificator(ClassificatorInterface):
 
   def train(self, X):
     return True
+
+class ReferenceGMM(ClassificatorInterface):
+  def __init__(self, n_components, max_iter):
+    self.n_components = n_components
+    self.max_iter = max_iter
+
+    self.gmm = GaussianMixture(n_components=n_components, max_iter=max_iter, tol=1e-8, random_state = 0)
+
+  def train(self, extractedMfccList):
+    X = None
+    for mfccArray in extractedMfccList:
+      if X is None:
+        X = mfccArray
+      else:
+        X = np.concatenate((X, mfccArray), axis=1)
+
+      self.gmm.fit(X.T)
+
+  def likelihood(self, extractedFeatures: np.array):
+    return self.gmm.score(extractedFeatures.T)
+
 
 
 # EQ

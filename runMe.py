@@ -3,6 +3,7 @@ import main.command as command
 import main.manager as manager
 import main.classificator as classificators
 import main.preprocessUnit as preprocess
+import main.recorder as rec
 import GUI.gui as GUI
 
 import threading
@@ -17,21 +18,23 @@ DEBUG = True
 open('logging.log', 'w').close()
 
 Gui = GUI.GUISmartHome()
-classificator = classificators.GMM(n_components=30, max_iterations=2000)
-# numberOfCepstras=112, numberOfMelFilters=224, numberOfFrequencyBins=2048
-trainedDataPath = os.getcwd() + r"\trainningData\commands52Cepstras_112MelFIlters_2048FFT_30components_2000_iterations.txt"
+# classificator = classificators.GMM(n_components=4, max_iterations=100)
+classificator = classificators.ReferenceGMM(n_components=7, max_iter=300)
+trainedDataPath = os.getcwd() + r"\trainningData\commands_12_Cepstras_24_MelFIlters_512_FFT_4_components_100_iterations.txt"
 
 training = True
 
-CommandManager = command.CommandManager(saveTrainedDataToCSV=training, trainingDataDestinationPath=trainedDataPath)
+CommandManager = command.CommandManager(saveTrainedDataToCSV=False, trainingDataDestinationPath=trainedDataPath)
 CommandFactory = None
 if training:
   CommandFactory = command.CommandFactory('database', classificator) #! getting train data
 else:
   CommandFactory = command.CommandReadingFactorGMM(classificator, trainedDataPath)
 
-preprocessUnit = preprocess.PreprocessUnit(desiredLoudnessLevel=0.8, downsamplingFrequency=10e3)
-Manager = manager.Manager(classificator ,CommandManager, CommandFactory, preprocessUnit, Gui)
+preprocessUnit = preprocess.PreprocessUnit(desiredLoudnessLevel=0.8, downsamplingFrequency=12e3)
+
+recorder = rec.FakeRecorder('database', recordingAcquisitionFrequency=0.05)
+Manager = manager.Manager(classificator ,CommandManager, CommandFactory, preprocessUnit, Gui, recorder)
 logging.basicConfig(filename = 'logging.log', level = logging.DEBUG)
 logging.info(" Starting program")
 

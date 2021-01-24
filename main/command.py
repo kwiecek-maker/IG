@@ -137,10 +137,10 @@ class CommandFactory(CommandFactoryInterface):
                 preprocessedData = preprocessUnit.process(data)
                 downsamplingFrequency = preprocessUnit.downsamplingFrequency
 
-                mfcc = MFCC(preprocessedData, samplerate=downsamplingFrequency, numberOfCepstras=112, numberOfMelFilters=224, numberOfFrequencyBins=2048)
+                mfcc = MFCC(preprocessedData, samplerate=downsamplingFrequency, numberOfCepstras=12, numberOfMelFilters=24, numberOfFrequencyBins=512)
                 mfccData = mfcc.extract()
 
-                commandData.append(mfccData.flatten('F'))
+                commandData.append(mfccData)
             outputCommands.append(self.createCommand(key, commandData))
             message = " Command acquired: \"" + str(key) + "\" command"
             logging.info(message)
@@ -200,7 +200,7 @@ class CommandManager(CommandManagerInterface):
     def recognize(self, extractedData):
         likelihood, index = 0, 0
         for commandIndex in range(len(self.commands)):
-            templikelihood = self.commands[commandIndex].likelihood(extractedData.flatten('F'))
+            templikelihood = self.commands[commandIndex].likelihood(extractedData)
             if  templikelihood > likelihood:
                 likelihood = templikelihood
                 index = commandIndex
@@ -228,8 +228,9 @@ class CommandManager(CommandManagerInterface):
                 if DEBUG:
                     print(message)
 
-                with open(self.trainingDataDestinationPath, 'a') as f:
-                    f.write(command.name + "\t" + str(command.classificator) + "\n")
+                if self.saveTrainedDataToCSV:
+                    with open(self.trainingDataDestinationPath, 'a') as f:
+                        f.write(command.name + "\t" + str(command.classificator) + "\n")
 
             else:
                 message = " Command: \"" + str(command.name) + "\" already trained"

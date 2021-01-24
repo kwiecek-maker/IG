@@ -130,6 +130,8 @@ class MFCC(FeatureExtractorInterface):
         self.dct()
         if self.appendFrameEnergy:
             self.spectral_energy()
+        for segment in self.mfccFeaturesArray:
+            segment = segment - np.mean(segment)
 
         return self.mfccFeaturesArray
 # EOF

@@ -8,6 +8,8 @@ import os
 import random
 import soundfile as sf
 import time
+
+from unidecode import unidecode
 from abc import ABC, abstractclassmethod
 
 
@@ -123,4 +125,33 @@ class FakeRecorder(RecorderInterface):
         else:
             data = data.flatten()
         return data
-  #EOF
+
+class ValidationRecorder(RecorderInterface):
+  def __init__(self, RelativePath):
+    self.recordingPaths = list()
+    for root, dirs, files in os.walk(RelativePath, topdown=False):
+      for path in files:
+        self.recordingPaths.append(os.path.join(root, path))
+
+  def isDataAvailable(self):
+    return True
+
+  def exportRecording(self):
+    path = os.getcwd() + "\\" + random.sample(self.recordingPaths, 1)[0]
+    data, samplerate = sf.read(path)
+    data = self.flatten(data)
+    fileDecode = unidecode(path.lower())
+    name = os.path.splitext(fileDecode)[0].rsplit('\\')[-1]
+
+    return data, samplerate, name
+
+  def run():
+    return True
+
+  @staticmethod
+  def flatten(audio):
+    if len(audio.shape) >= 2:
+        audio = audio[:, 0].flatten()
+    else:
+        audio = audio.flatten()
+    return audio

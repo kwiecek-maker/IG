@@ -8,9 +8,9 @@ import time
 
 # Manages all object used in Program
 class Manager:
-  def __init__(self, classificator, CommandManager, CommandFactory, preprocessUnit, GUISmartHome):
+  def __init__(self, classificator, CommandManager, CommandFactory, preprocessUnit, GUISmartHome, recorder):
     # self.recorder = recorder.Recorder(thresholdLevel=0.2)
-    self.recorder = recorder.FakeRecorder('database', recordingAcquisitionFrequency=0.05)
+    self.recorder = recorder
     self.preprocessUnit = preprocessUnit
     self.commandManager = CommandManager
     self.commandFactory = CommandFactory
@@ -38,7 +38,7 @@ class Manager:
 
       data = self.recorder.exportRecording()
       data = self.preprocessUnit.process(data)
-      data = extractor.MFCC(data,  samplerate=self.preprocessUnit.downsamplingFrequency, numberOfCepstras=112, numberOfMelFilters=224, numberOfFrequencyBins=2048)
+      data = extractor.MFCC(data,  samplerate=self.preprocessUnit.downsamplingFrequency, numberOfCepstras=12, numberOfMelFilters=24, numberOfFrequencyBins=512  )
       command = self.commandManager.recognize(data.extract())
       self.GUI.putIntoQueue(command)
 
