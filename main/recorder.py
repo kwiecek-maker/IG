@@ -91,6 +91,7 @@ class FakeRecorder(RecorderInterface):
   def __init__(self, RelativePath, recordingAcquisitionFrequency = 0.5):
     self.recordingProducingPeriod = recordingAcquisitionFrequency ** -1
     self.acquiredRecordingQueue = queue.Queue()
+    self.acquiredSamplerateQueue = queue.Queue()
 
     self.recordingPaths = list()
     for root, dirs, files in os.walk(RelativePath, topdown=False):
@@ -102,7 +103,7 @@ class FakeRecorder(RecorderInterface):
 
   def exportRecording(self):
     try:
-      return self.acquiredRecordingQueue.get_nowait()
+      return self.acquiredRecordingQueue.get_nowait(), self.acquiredSamplerateQueue.get_nowait()
     except queue.Empty:
       return None
 
@@ -116,6 +117,7 @@ class FakeRecorder(RecorderInterface):
         data = self.flattenData(data)
         logging.info(" Generated audio: %s," % path)
         self.acquiredRecordingQueue.put(data)
+        self.acquiredSamplerateQueue.put(samplerate)
       time.sleep(self.recordingProducingPeriod)
 
   @staticmethod

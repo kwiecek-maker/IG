@@ -36,10 +36,11 @@ class Manager:
   def dataCalculationLoop(self):
     if self.recorder.isDataAvailable():
 
-      data = self.recorder.exportRecording()
+      data, samplerate = self.recorder.exportRecording()
       data = self.preprocessUnit.process(data)
-      data = extractor.MFCC(data,  samplerate=self.preprocessUnit.downsamplingFrequency, numberOfCepstras=12, numberOfMelFilters=24, numberOfFrequencyBins=512  )
-      command = self.commandManager.recognize(data.extract())
+      data = extractor.ReferenceMFCC(data, samplerate)
+      # data = extractor.MFCC(data,  samplerate=self.preprocessUnit.downsamplingFrequency, numberOfCepstras=12, numberOfMelFilters=24, numberOfFrequencyBins=512  )
+      command = self.commandManager.recognize(data.extract().T)
       self.GUI.putIntoQueue(command)
 
   def trainThread(self):

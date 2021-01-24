@@ -5,6 +5,7 @@ import numpy as np
 from main.preprocessUnit import PreprocessUnit
 from abc import ABC, abstractclassmethod
 from main.featureExtractor import MFCC
+from main.featureExtractor import ReferenceMFCC
 from main.classificator import GMM
 from unidecode import unidecode
 import soundfile as sf
@@ -135,10 +136,11 @@ class CommandFactory(CommandFactoryInterface):
 
                 preprocessUnit.samplingFrequency = samplerate
                 preprocessedData = preprocessUnit.process(data)
-                downsamplingFrequency = preprocessUnit.downsamplingFrequency
+                # downsamplingFrequency = preprocessUnit.downsamplingFrequency
 
-                mfcc = MFCC(preprocessedData, samplerate=downsamplingFrequency, numberOfCepstras=12, numberOfMelFilters=24, numberOfFrequencyBins=512)
-                mfccData = mfcc.extract()
+                mfcc = ReferenceMFCC(preprocessedData, samplerate)
+                # mfcc = MFCC(preprocessedData, samplerate=downsamplingFrequency, numberOfCepstras=12, numberOfMelFilters=24, numberOfFrequencyBins=512)
+                mfccData = mfcc.extract().T
 
                 commandData.append(mfccData)
             outputCommands.append(self.createCommand(key, commandData))

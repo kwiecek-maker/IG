@@ -10,7 +10,7 @@ class LPCcoder:
 
     def __repr__(self):
         return "LPC coder. prediction Length: %d, BLock size: %d" % (self.predictionLength, self.frameSize)
-    
+
     def __str__(self):
         return self.__repr__()
 

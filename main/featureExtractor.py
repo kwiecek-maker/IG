@@ -3,6 +3,7 @@ import numpy as np
 from numpy import inf
 import itertools
 import sys
+import python_speech_features as reference
 
 
 class FeatureExtractorInterface(ABC):
@@ -134,4 +135,12 @@ class MFCC(FeatureExtractorInterface):
             segment = segment - np.mean(segment)
 
         return self.mfccFeaturesArray
+
+class ReferenceMFCC(FeatureExtractorInterface):
+    def __init__(self, audioMonoData, samplerate):
+        self.audioMonoData = audioMonoData
+        self.data = reference.base.mfcc(self.audioMonoData, samplerate=samplerate, numcep=13, nfilt=26, nfft=2048)
+
+    def extract(self):
+        return self.data
 # EOF

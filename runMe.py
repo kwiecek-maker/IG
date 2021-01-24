@@ -18,7 +18,6 @@ DEBUG = True
 open('logging.log', 'w').close()
 
 Gui = GUI.GUISmartHome()
-# classificator = classificators.GMM(n_components=4, max_iterations=100)
 classificator = classificators.ReferenceGMM(n_components=7, max_iter=300)
 trainedDataPath = os.getcwd() + r"\trainningData\commands_12_Cepstras_24_MelFIlters_512_FFT_4_components_100_iterations.txt"
 
@@ -31,7 +30,7 @@ if training:
 else:
   CommandFactory = command.CommandReadingFactorGMM(classificator, trainedDataPath)
 
-preprocessUnit = preprocess.PreprocessUnit(desiredLoudnessLevel=0.8, downsamplingFrequency=12e3)
+preprocessUnit = preprocess.FakePreprocessorUnit()
 
 recorder = rec.FakeRecorder('database', recordingAcquisitionFrequency=0.05)
 Manager = manager.Manager(classificator ,CommandManager, CommandFactory, preprocessUnit, Gui, recorder)
