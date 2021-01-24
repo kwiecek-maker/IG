@@ -139,7 +139,7 @@ class MFCC(FeatureExtractorInterface):
 class ReferenceMFCC(FeatureExtractorInterface):
     def __init__(self, audioMonoData, samplerate):
         self.audioMonoData = audioMonoData
-        self.data = reference.base.mfcc(self.audioMonoData, samplerate=samplerate, numcep=13, nfilt=26, nfft=2048)
+        self.data = reference.base.mfcc(self.audioMonoData, samplerate=samplerate, numcep=26, nfilt=26, nfft=2048)
 
     def extract(self):
         return self.data

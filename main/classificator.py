@@ -146,7 +146,7 @@ class ReferenceGMM(ClassificatorInterface):
     self.n_components = n_components
     self.max_iter = max_iter
 
-    self.gmm = GaussianMixture(n_components=n_components, max_iter=max_iter, tol=1e-8, random_state = 0)
+    self.gmm = GaussianMixture(n_components=n_components, max_iter=max_iter, tol=1e-6, random_state = 0)
 
   def train(self, extractedMfccList):
     X = None

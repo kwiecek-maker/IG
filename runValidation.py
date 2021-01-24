@@ -18,10 +18,12 @@ import os
 open('logging.log', 'w').close()
 
 Gui = GUI.GUISmartHome()
-classificator = classificators.GMM(n_components=4, max_iterations=100)
+# classificator = classificators.GMM(n_components=4, max_iterations=100)
+classificator = classificators.ReferenceGMM(n_components=5, max_iter=200)
 trainedDataPath = os.getcwd() + r"\trainningData\commands_12_Cepstras_24_MelFIlters_512_FFT_4_components_100_iterations.txt"
 CommandManager = command.CommandManager(saveTrainedDataToCSV=False, trainingDataDestinationPath=trainedDataPath)
-CommandFactory = command.CommandReadingFactorGMM(classificator, trainedDataPath)
+# CommandFactory = command.CommandReadingFactorGMM(classificator, trainedDataPath)
+CommandFactory = command.CommandFactory('database', classificator)
 # preprocessUnit = preprocess.PreprocessUnit(desiredLoudnessLevel=0.8, downsamplingFrequency=12e3)
 preprocessUnit = preprocess.FakePreprocessorUnit()
 
@@ -32,6 +34,7 @@ manager = Manager.Manager(classificator, CommandManager, CommandFactory, preproc
 logging.basicConfig(filename = 'logging.log', level = logging.DEBUG)
 logging.info(" Starting Validation")
 manager.acquiringDataThread()
+manager.trainThread()
 score = 0.0
 numberOfTest = int(1e3)
 for _ in range(numberOfTest):
