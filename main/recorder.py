@@ -7,6 +7,7 @@ import os
 import random
 import soundfile as sf
 import time
+import sounddevice as sd
 
 from unidecode import unidecode
 from abc import ABC, abstractclassmethod
